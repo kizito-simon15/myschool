@@ -1,0 +1,617 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="utf-8" />
+    <title><span class="notranslate">St. Theresa of Avila Girls</span></title>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+
+    <!-- Favicon -->
+    <link href="{% static 'assets/img/favicon.jpg' %}" rel="icon" />
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <!-- AOS Library -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
+
+    <!-- Custom CSS -->
+    <style>
+      body {
+        font-family: 'Open Sans', sans-serif;
+        color: #333;
+        background: #f8f9fa;
+        overflow-x: hidden;
+        font-size: 1.1rem;
+      }
+
+      #preloader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
+
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #ff6f61;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .container {
+        padding: 0 !important;
+      }
+
+      .navbar {
+        background: #00BFFF;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        padding: 10px 0;
+      }
+
+      .navbar-brand {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
+        font-size: 1.8rem;
+        white-space: normal;
+        line-height: 1.2;
+      }
+
+      .navbar-brand img {
+        border-radius: 50%;
+      }
+
+      .nav-link {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #333 !important;
+        transition: all 0.3s ease;
+      }
+
+      .nav-link:hover, .dropdown-item:hover {
+        color: #ff6f61 !important;
+        background-color: #f8f9fa;
+      }
+
+      .dropdown-menu {
+        border: none;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        font-size: 0.95rem;
+        background: #00BFFF;
+      }
+
+      .dropdown-item {
+        color: #333 !important;
+      }
+
+      .dropdown-toggle::after {
+        margin-left: 0.1em;
+      }
+
+      .hover-effect {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .hover-effect:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+      }
+
+      .text-primary { color: #2c97df !important; }
+      .text-header-primary { color: #ff6f61 !important; }
+      .text-header-secondary { color: #26a69a !important; }
+      .text-header-success { color: #28a745 !important; }
+      .text-header-warning { color: #ffc107 !important; }
+
+      .back-to-top {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        display: none;
+        z-index: 1000;
+        background: #ff6f61;
+        color: #fff;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        text-align: center;
+        line-height: 40px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+      }
+
+      .back-to-top:hover {
+        background: #e65a50;
+        transform: scale(1.1);
+      }
+
+      .section-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        position: relative;
+        display: inline-block;
+        margin-bottom: 1.5rem;
+      }
+
+      .section-title::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: -5px;
+        width: 50px;
+        height: 3px;
+        background: #ff6f61;
+        border-radius: 2px;
+      }
+
+      .section-icon {
+        margin-right: 10px;
+      }
+
+      .card {
+        border: none;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+      }
+
+      .card:hover {
+        transform: scale(1.05);
+      }
+
+      .card-img-top {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        border-radius: 12px 12px 0 0;
+      }
+
+      .btn-cta {
+        background: #ff6f61;
+        color: #fff;
+        padding: 10px 25px;
+        border-radius: 20px;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .btn-cta:hover {
+        background: #e65a50;
+        transform: translateY(-2px);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      }
+
+      .footer {
+        background: #2c2c2c;
+        color: #fff;
+        padding: 40px 0;
+        font-family: 'Poppins', sans-serif;
+      }
+
+      .footer a {
+        color: #fff;
+        font-size: 0.95rem;
+        transition: color 0.3s ease;
+      }
+
+      .footer a:hover {
+        color: #ffc107;
+      }
+
+      .footer h3 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+      }
+
+      .footer .social-links a {
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        text-align: center;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.1);
+        margin-right: 10px;
+        transition: all 0.3s ease;
+      }
+
+      .footer .social-links a:hover {
+        background: #ff6f61;
+        transform: scale(1.1);
+      }
+
+      @media (max-width: 768px) {
+        .navbar-brand { font-size: 1.2rem; }
+        .nav-link, .dropdown-item { font-size: 0.9rem; }
+        .section-title { font-size: 1.2rem; }
+        .navbar-collapse { background: #00BFFF; }
+        .navbar-nav { padding: 10px; }
+        .dropdown-menu { position: static !important; box-shadow: none; border: none; background: transparent; }
+        .dropdown-toggle::after { float: right; }
+        .dropdown-item { color: #333 !important; padding-left: 20px; }
+        body { font-size: 1rem; }
+        .text-muted { font-size: 0.9rem; }
+        h1 { font-size: 2.5rem; }
+        h4 { font-size: 1.3rem; }
+        h5 { font-size: 1.1rem; }
+      }
+
+      /* New styles for departments section */
+      #departments-section {
+        background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+      }
+      #departments-section .departments-decor {
+        background: #ffffff;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        border: 2px solid #00BFFF;
+      }
+      #departments-section h2 {
+        color: #26a69a !important;
+      }
+      #departments-section h1 {
+        color: #ff6f61 !important;
+      }
+      #departments-section .section-icon {
+        color: #ffc107 !important;
+      }
+      #departments-section .card h4 {
+        color: #28a745 !important;
+      }
+      #departments-section .emoji {
+        font-size: 1.5rem;
+        margin-right: 10px;
+      }
+    </style>
+    <!-- Google Translate -->
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+          pageLanguage: 'sw',
+          includedLanguages: 'en,sw',
+          layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+        }, 'google_translate_element');
+      }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</head>
+<body>
+  <!-- Google Translate Element -->
+  <div id="google_translate_element" style="position: absolute; top: 10px; right: 10px; z-index: 1001;"></div>
+
+  <!-- Preloader -->
+  <div id="preloader">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Image Preview Modal -->
+  <div class="modal fade" id="imagePreview" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <img id="previewImage" src="" class="img-fluid">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Back to Top Button -->
+  <button class="back-to-top" id="backToTopBtn">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <!-- Navbar Start -->
+  <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+    <div class="container">
+      <a href="{% url 'index' %}" class="navbar-brand">
+        <img src="{% static 'assets/img/st-theresa-logo.jpg' %}" alt="Logo" style="width: 40px; height: 40px; margin-right: 10px;" />
+        <span class="notranslate">St. Theresa of Avila Girls</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarCollapse">
+        <div class="navbar-nav ms-auto">
+          <a href="{% url 'index' %}" class="nav-item nav-link">Nyumbani</a>
+          <a href="{% url 'index' %}#about" class="nav-item nav-link">Kuhusu</a>
+          <div class="nav-item dropdown">
+            <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Shule Yetu</a>
+            <div class="dropdown-menu">
+              <a href="{% url 'index' %}#mission" class="dropdown-item">Dhamira na Maono</a>
+              <a href="{% url 'departments' %}" class="dropdown-item active">Idara</a>
+              <a href="{% url 'leadership' %}" class="dropdown-item">Uongozi</a>
+            </div>
+          </div>
+          <a href="{% url 'admissions' %}" class="nav-item nav-link">Uandikishaji</a>
+          <a href="{% url 'gallery' %}" class="nav-item nav-link">Matunzio</a>
+          <a href="{% url 'index' %}#contact" class="nav-item nav-link">Wasiliana</a>
+        </div>
+        <a href="{% url 'login' %}" class="btn btn-cta ms-3">Ingia</a>
+      </div>
+    </div>
+  </nav>
+  <!-- Navbar End -->
+
+  <!-- Departments Section -->
+  <section id="departments-section" class="py-5">
+    <div class="container">
+      <div class="departments-decor text-center mb-4">
+        <h2 class="section-title"><i class="fas fa-book-open section-icon"></i>Idara Zetu</h2>
+        <h1><span class="emoji">📘</span> Ubora wa Kielimu Katika Taaluma Zote</h1>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="card h-100 hover-effect">
+            <img src="{% static 'assets/img/departments/biology-department.jpg' %}" class="card-img-top clickable" alt="Biology Department" style="object-fit: contain;" loading="lazy" />
+            <div class="card-body text-center">
+              <h4 class="text-header-primary"><span class="emoji">🧬</span> Idara ya Biolojia</h4>
+              <p class="text-muted">Kuchunguza maajabu ya sayansi ya maisha, kutoka biolojia ya seli hadi ikolojia, na majaribio ya vitendo na masomo ya shamba.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 hover-effect">
+            <img src="{% static 'assets/img/departments/chemistry-department.jpg' %}" class="card-img-top clickable" alt="Chemistry Department" style="object-fit: contain;" loading="lazy" />
+            <div class="card-body text-center">
+              <h4 class="text-header-secondary"><span class="emoji">⚗️</span> Idara ya Kemia</h4>
+              <p class="text-muted">Kuchunguza muundo, sifa, na athari za madini kupitia kazi ya maabara ya vitendo na dhana za kinadharia.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 hover-effect">
+            <img src="{% static 'assets/img/departments/civics-department.jpg' %}" class="card-img-top clickable" alt="Civics Department" style="object-fit: contain;" loading="lazy" />
+            <div class="card-body text-center">
+              <h4 class="text-header-success"><span class="emoji">🏛️</span> Idara ya Uraia</h4>
+              <p class="text-muted">Kukuza uraia wenye wajibu kwa kujifunza utawala, haki za binadamu, na wajibu wa jamii.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 hover-effect">
+            <img src="{% static 'assets/img/departments/computer-department.jpg' %}" class="card-img-top clickable" alt="Computer Department" style="object-fit: contain;" loading="lazy" />
+            <div class="card-body text-center">
+              <h4 class="text-header-warning"><span class="emoji">💻</span> Idara ya Kompyuta</h4>
+              <p class="text-muted">Kuwapa wanafunzi uwezo wa kidijitali, ustadi wa uprogramu, na maarifa ya teknolojia ya habari kwa ulimwengu wa kisasa.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 hover-effect">
+            <img src="{% static 'assets/img/departments/english-department.jpg' %}" class="card-img-top clickable" alt="English Department" style="object-fit: contain;" loading="lazy" />
+            <div class="card-body text-center">
+              <h4 class="text-header-primary"><span class="emoji">🇬🇧</span> Idara ya Kiingereza</h4>
+              <p class="text-muted">Kuboresha uwezo wa lugha kupitia fasihi, sarufi, na maendeleo ya ustadi wa mawasiliano.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 hover-effect">
+            <img src="{% static 'assets/img/departments/geography-department.jpg' %}" class="card-img-top clickable" alt="Geography Department" style="object-fit: contain;" loading="lazy" />
+            <div class="card-body text-center">
+              <h4 class="text-header-secondary"><span class="emoji">🌍</span> Idara ya Jiografia</h4>
+              <p class="text-muted">Kujifunza mandhari ya kimwili na kibinadamu, masuala ya mazingira, na uchambuzi wa anga na matumizi ya ulimwengu halisi.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 hover-effect">
+            <img src="{% static 'assets/img/departments/french-department.jpg' %}" class="card-img-top clickable" alt="French Department" style="object-fit: contain;" loading="lazy" />
+            <div class="card-body text-center">
+              <h4 class="text-header-success"><span class="emoji">🇫🇷</span> Idara ya Kifaransa</h4>
+              <p class="text-muted">Kuwajulisha wanafunzi lugha na utamaduni wa Kifaransa, kukuza ulingano wa lugha na ufahamu wa kimataifa.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 hover-effect">
+            <img src="{% static 'assets/img/departments/history-department.jpg' %}" class="card-img-top clickable" alt="History Department" style="object-fit: contain;" loading="lazy" />
+            <div class="card-body text-center">
+              <h4 class="text-header-warning"><span class="emoji">📜</span> Idara ya Historia</h4>
+              <p class="text-muted">Kuchunguza matukio ya zamani, ustaarabu, na athari zao kwa wakati huu ili kukuza fikra muhimu na mtazamo wa kihistoria.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 hover-effect">
+            <img src="{% static 'assets/img/departments/kiswahili-department.jpg' %}" class="card-img-top clickable" alt="Kiswahili Department" style="object-fit: contain;" loading="lazy" />
+            <div class="card-body text-center">
+              <h4 class="text-header-primary"><span class="emoji">🇹🇿</span> Idara ya Kiswahili</h4>
+              <p class="text-muted">Kukuza uwezo katika Kiswahili kupitia fasihi, sarufi, na masomo ya utamaduni kama lugha muhimu ya kitaifa.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 hover-effect">
+            <img src="{% static 'assets/img/departments/mathematics-department.jpg' %}" class="card-img-top clickable" alt="Mathematics Department" style="object-fit: contain;" loading="lazy" />
+            <div class="card-body text-center">
+              <h4 class="text-header-secondary"><span class="emoji">➗</span> Idara ya Hisabati</h4>
+              <p class="text-muted">Kujenga misingi imara katika aljebra, jiometri, na hesabu ili kukuza ustadi wa kutatua matatizo na uchambuzi.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 hover-effect">
+            <img src="{% static 'assets/img/departments/physics-department.jpg' %}" class="card-img-top clickable" alt="Physics Department" style="object-fit: contain;" loading="lazy" />
+            <div class="card-body text-center">
+              <h4 class="text-header-success"><span class="emoji">⚛️</span> Idara ya Fizikia</h4>
+              <p class="text-muted">Kuchunguza sheria za asili, nishati, na madini kupitia kanuni za kinadharia na maonyesho ya vitendo.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Departments End -->
+
+  <!-- Footer Start -->
+  <footer class="footer">
+    <div class="container">
+      <div class="row pt-4">
+        <div class="col-lg-3 col-md-6 mb-4">
+          <a href="{% url 'index' %}" class="navbar-brand font-weight-bold text-warning mb-4 d-block">
+            <i class="fas fa-school me-2"></i><span class="notranslate">St. Theresa of Avila Girls Secondary School</span>
+          </a>
+          <p style="font-size: 1rem;">Kuwawezesha wanawake wachanga kupitia imani, masomo, na uongozi huko Kahama, Shinyanga.</p>
+          <div class="d-flex social-links mt-3">
+            <a href="https://facebook.com/sttheresaschool" target="_blank"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://instagram.com/sttheresaschool" target="_blank"><i class="fab fa-instagram"></i></a>
+            <a href="https://twitter.com/sttheresaschool" target="_blank"><i class="fab fa-twitter"></i></a>
+            <a href="https://wa.me/255754890020" target="_blank"><i class="fab fa-whatsapp" style="color: #25D366;"></i></a>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+          <h3 class="text-warning">Wasiliana Nasi</h3>
+          <div class="d-flex mb-3">
+            <i class="fas fa-map-marker-alt text-primary me-3"></i>
+            <div>
+              <h5 style="font-size: 1.1rem;">Anwani</h5>
+              <p style="font-size: 1rem;">S.L.P. 849, Kahama, Shinyanga, Tanzania</p>
+            </div>
+          </div>
+          <div class="d-flex mb-3">
+            <i class="fas fa-envelope text-primary me-3"></i>
+            <div>
+              <h5 style="font-size: 1.1rem;">Barua pepe</h5>
+              <p><a href="mailto:sttheresaofavilagss@gmail.com" style="font-size: 1rem;">sttheresaofavilagss@gmail.com</a></p>
+            </div>
+          </div>
+          <div class="d-flex mb-3">
+            <i class="fab fa-whatsapp text-primary me-3" style="color: #25D366;"></i>
+            <div>
+              <h5 style="font-size: 1.1rem;">WhatsApp</h5>
+              <p><a href="https://wa.me/255754890020" style="font-size: 1rem;">+255 754 890 020</a></p>
+            </div>
+          </div>
+          <div class="d-flex">
+            <i class="fas fa-phone-alt text-primary me-3"></i>
+            <div>
+              <h5 style="font-size: 1.1rem;">Simu</h5>
+              <p><a href="tel:0766456872" style="font-size: 1rem;">0766456872</a> / <a href="tel:0782456872" style="font-size: 1rem;">0782456872</a></p>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+          <h3 class="text-warning">Viungo vya Haraka</h3>
+          <div class="d-flex flex-column">
+            <a href="{% url 'index' %}" class="mb-2" style="font-size: 1rem;"><i class="fa fa-angle-right me-2"></i>Nyumbani</a>
+            <a href="{% url 'index' %}#about" class="mb-2" style="font-size: 1rem;"><i class="fa fa-angle-right me-2"></i>Kuhusu</a>
+            <a href="{% url 'index' %}#mission" class="mb-2" style="font-size: 1rem;"><i class="fa fa-angle-right me-2"></i>Dhamira na Maono</a>
+            <a href="{% url 'leadership' %}" class="mb-2" style="font-size: 1rem;"><i class="fa fa-angle-right me-2"></i>Uongozi</a>
+            <a href="{% url 'departments' %}" class="mb-2" style="font-size: 1rem;"><i class="fa fa-angle-right me-2"></i>Idara</a>
+            <a href="{% url 'admissions' %}" class="mb-2" style="font-size: 1rem;"><i class="fa fa-angle-right me-2"></i>Uandikishaji</a>
+            <a href="{% url 'gallery' %}" class="mb-2" style="font-size: 1rem;"><i class="fa fa-angle-right me-2"></i>Matunzio</a>
+            <a href="{% url 'index' %}#contact" class="mb-2" style="font-size: 1rem;"><i class="fa fa-angle-right me-2"></i>Wasiliana</a>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+          <h3 class="text-warning">Dhamira Yetu</h3>
+          <p style="font-size: 1rem;">Kuelimisha mwanamke ni kuelimisha jamii. Tunatoa elimu ya kina ambayo inawapa wasichana uwezo wa kuongoza na kusudi na kubadilisha jamii.</p>
+          <a href="{% url 'admissions' %}" class="btn btn-cta btn-sm mt-3">Jiunge Nasi</a>
+        </div>
+      </div>
+      <div class="pt-4" style="border-top: 1px solid rgba(255,255,255,0.2);">
+        <p class="text-center" style="font-size: 1rem;">© 2025 <span class="text-warning font-weight-bold"><span class="notranslate">St. Theresa of Avila Girls Secondary School</span></span>. Haki zote zimehifadhiwa.</p>
+        <p class="text-center" style="font-size: 1rem;">Imeundwa na <a href="https://www.kizitasoft.co.tz" target="_blank" style="color: deepskyblue;">Kizita Soft Limited <i class="fas fa-eye"></i></a></p>
+      </div>
+    </div>
+  </footer>
+  <!-- Footer End -->
+
+  <!-- JS Libraries -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.4/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.4/ScrollTrigger.min.js"></script>
+
+  <!-- Custom JS -->
+  <script>
+    // Preloader
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        document.getElementById('preloader').style.display = 'none';
+      }, 2000);
+    });
+
+    AOS.init({ duration: 800, offset: 100, once: true });
+    const backToTopBtn = document.getElementById("backToTopBtn");
+    window.addEventListener("scroll", () => {
+      backToTopBtn.style.display = window.scrollY > 200 ? "block" : "none";
+    });
+    backToTopBtn.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.from(".section-title", {
+      scrollTrigger: {
+        trigger: ".section-title",
+        start: "top bottom",
+        toggleActions: "play none none reverse"
+      },
+      y: 50,
+      opacity: 0,
+      duration: 1,
+      stagger: 0.2
+    });
+    gsap.from(".card", {
+      scrollTrigger: {
+        trigger: ".card",
+        start: "top bottom",
+        toggleActions: "play none none reverse"
+      },
+      y: 50,
+      opacity: 0,
+      duration: 0.8,
+      stagger: 0.2
+    });
+
+    // Close mobile navbar on anchor link click, excluding dropdown-toggle
+    document.querySelectorAll('.navbar-nav .nav-link[href^="#"]:not(.dropdown-toggle)').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768) { // Only on mobile
+          const navbarCollapse = document.querySelector('#navbarCollapse');
+          const bsCollapse = new bootstrap.Collapse(navbarCollapse, { toggle: false });
+          bsCollapse.hide();
+        }
+      });
+    });
+
+    // Make static images clickable for preview
+    document.querySelectorAll('img.clickable').forEach(img => {
+      img.addEventListener('click', () => {
+        document.getElementById('previewImage').src = img.src;
+        new bootstrap.Modal(document.getElementById('imagePreview')).show();
+      });
+    });
+  </script>
+</body>
+</html>

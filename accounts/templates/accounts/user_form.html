@@ -1,0 +1,46 @@
+{% extends "school/base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}Edit User · St Theresia‑Avila{% endblock %}
+
+{% block extra_css %}
+<style>
+/* same card‑glass style as register */
+.card-glass{width:100%;max-width:480px;margin:2.8rem auto;padding:2.5rem 2.1rem;
+  border-radius:18px;background:rgba(255,255,255,.66);
+  backdrop-filter:blur(16px);box-shadow:0 10px 28px rgba(0,0,0,.12)}
+label{font-weight:600;color:var(--pri)}
+.form-control,.form-select{border-radius:50px;background:#f8fafc;border:1px solid #d1d5db;
+  padding:.66rem 1.1rem;font-weight:600}
+.form-control:focus,.form-select:focus{border-color:var(--pri);box-shadow:0 0 0 2px rgba(13,148,136,.24);background:#fff}
+.btn-main{border:none;border-radius:56px;padding:.75rem;font-weight:700;
+  background:linear-gradient(135deg,var(--pri),var(--sec));color:#fff}
+.btn-main:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(13,148,136,.22)}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card-glass">
+
+  <h2 class="text-center mb-4 fw-bold">✏️ Edit User</h2>
+
+  <form method="post" class="needs-validation" novalidate>
+    {% csrf_token %}
+
+    {% for field in form %}
+      <div class="mb-3">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {% render_field field class+="form-control" %}
+        {% if field.errors %}
+          <div class="text-danger small">{{ field.errors.0 }}</div>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <div class="d-grid gap-2">
+      <button class="btn-main">💾 Save</button>
+      <a href="{% url 'user_list' %}" class="btn btn-secondary rounded-pill">↩︎ Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

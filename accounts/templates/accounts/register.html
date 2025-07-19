@@ -1,0 +1,126 @@
+{% extends "school/base.html" %}
+{% load widget_tweaks %}
+{% block title %}Register · St Theresia‑Avila{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{
+  --pri:#0d9488;--sec:#f97316;--bg1:#e0f2f1;--bg2:#fdf6ec;
+  --radius:18px;--shadow:0 10px 28px rgba(0,0,0,.12);
+}
+body{background:linear-gradient(135deg,var(--bg1),var(--bg2));
+     display:flex;align-items:center;justify-content:center;min-height:100vh}
+
+/* glass card */
+.card-reg{
+  width:100%;max-width:480px;padding:2.6rem 2.2rem;border-radius:var(--radius);
+  background:rgba(255,255,255,.92);backdrop-filter:blur(16px);
+  box-shadow:var(--shadow);color:#1e293b;
+}
+h2{font-weight:700;text-align:center;margin-bottom:1.8rem}
+
+/* inputs */
+label{font-weight:600;color:var(--pri)}
+.form-control{
+  border-radius:50px;border:1px solid #d1d5db;background:#fff;
+  padding:.66rem 1.15rem;font-weight:600;
+}
+.form-control:focus{border-color:var(--pri);
+  box-shadow:0 0 0 2px rgba(13,148,136,.24)}
+/* eye icon */
+.pw-box{position:relative}
+.pw-box .form-control{padding-right:3rem!important}
+.pw-toggle{
+  position:absolute;top:50%;right:.95rem;transform:translateY(-50%);
+  border:none;background:none;cursor:pointer;color:#64748b;font-size:1.1rem;
+}
+.pw-toggle:hover{color:var(--sec)}
+
+/* button */
+.btn-main{
+  width:100%;border:none;border-radius:56px;padding:.75rem;
+  font-weight:700;color:#fff;background:linear-gradient(135deg,var(--pri),var(--sec));
+  transition:transform .25s,box-shadow .25s;
+}
+.btn-main:hover{transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(13,148,136,.22)}
+
+.link-small{text-align:center;font-size:.85rem;margin-top:1.25rem}
+.text-danger{font-size:.82rem;font-style:italic}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card-reg" id="regCard">
+  <h2>👤 New User Registration</h2>
+
+  {# flash messages (from views) #}
+  {% if messages %}
+    {% for m in messages %}
+      <div class="alert alert-{{ m.tags|default:'info' }} py-2 text-center mb-3">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {# non‑field errors #}
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger text-center py-2 mb-3">
+      {% for err in form.non_field_errors %}{{ err }}{% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="post" class="needs-validation" novalidate>
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="id_username">Username</label>
+      {% render_field form.username class+="form-control" placeholder="e.g. johndoe" %}
+      {% if form.username.errors %}<div class="text-danger">{{ form.username.errors.0 }}</div>{% endif %}
+    </div>
+
+    <div class="mb-3">
+      <label for="id_phone">Mobile Number</label>
+      {% render_field form.phone class+="form-control" placeholder="+2557XXXXXXXX" %}
+      {% if form.phone.errors %}<div class="text-danger">{{ form.phone.errors.0 }}</div>{% endif %}
+    </div>
+
+    <div class="mb-3 pw-box">
+      <label for="id_password1">Password</label>
+      {% render_field form.password1 class+="form-control" placeholder="••••••••" %}
+      <button type="button" class="pw-toggle" data-target="id_password1"><i class="bi bi-eye-slash"></i></button>
+      {% if form.password1.errors %}<div class="text-danger">{{ form.password1.errors.0 }}</div>{% endif %}
+    </div>
+
+    <div class="mb-3 pw-box">
+      <label for="id_password2">Confirm Password</label>
+      {% render_field form.password2 class+="form-control" placeholder="Repeat password" %}
+      <button type="button" class="pw-toggle" data-target="id_password2"><i class="bi bi-eye-slash"></i></button>
+      {% if form.password2.errors %}<div class="text-danger">{{ form.password2.errors.0 }}</div>{% endif %}
+    </div>
+
+    <div class="form-check mb-3">
+      {% render_field form.is_staff class+="form-check-input" %}
+      <label class="form-check-label" for="id_is_staff">Give staff privileges</label>
+    </div>
+
+    <button class="btn-main">Register</button>
+  </form>
+
+  <p class="link-small">Already registered? <a href="{% url 'login' %}">Sign in</a></p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  /* toggle each password field independently */
+  document.querySelectorAll('.pw-toggle').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const inp=document.getElementById(btn.dataset.target);
+      const isPwd = inp.type === 'password';
+      inp.type = isPwd ? 'text' : 'password';
+      btn.innerHTML = isPwd ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+    });
+  });
+});
+</script>
+{% endblock %}

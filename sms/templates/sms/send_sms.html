@@ -1,0 +1,246 @@
+{% extends "school/base.html" %}
+{% load humanize %}
+
+{% block title %}Send SMS{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{
+  --slate:#334155; --tile-bg:linear-gradient(135deg,#fff,#f9fafb);
+  --shadow:0 6px 18px rgba(0,0,0,.1);
+}
+body{background:linear-gradient(135deg,var(--light),#e0e7ff)}
+
+/* hero strip --------------------------------------------------------*/
+.hero{background:linear-gradient(135deg,var(--slate),var(--pri));
+  color:#fff;padding:1.8rem 1.5rem;border-radius:0 0 22px 22px;box-shadow:var(--shadow)}
+.hero h2{margin:0;font-size:clamp(1.8rem,5vw,2.3rem);font-weight:800;display:flex;gap:.55rem}
+
+/* form wrapper ------------------------------------------------------*/
+.sms-form{
+  max-width:1000px;
+  margin:auto;
+  padding:1.6rem 1.3rem;
+  width:100%;
+}
+
+/* inputs */
+label{font-weight:600;margin-bottom:.35rem;display:block}
+.form-control,.form-select{width:100%;border:none;border-radius:9999px;padding:.6rem 1.1rem;
+  font-weight:600;background:#fff;box-shadow:var(--shadow)}
+.form-control:focus,.form-select:focus{outline:3px solid var(--pri)}
+textarea.form-control{border-radius:14px;resize:vertical;padding:1rem}
+.counter{font-size:.78rem;opacity:.75;margin-left:.4rem}
+
+/* KPI counters ------------------------------------------------------*/
+.k-count{display:inline-flex;gap:.4rem;align-items:center;font-size:.82rem;font-weight:600}
+.k-count .pill{background:var(--pri);color:#fff;font-size:.72rem;padding:.1rem .55rem;border-radius:9999px}
+
+/* buttons */
+.btn-main,.btn-alt{border:none;border-radius:9999px;padding:.55rem 1.4rem;font-weight:700;color:#fff;cursor:pointer;box-shadow:var(--shadow)}
+.btn-main{background:linear-gradient(45deg,var(--pri),var(--sec))} .btn-main:hover{filter:brightness(1.07)}
+.btn-alt{background:linear-gradient(45deg,#22c55e,#4ade80)} .btn-alt:hover{filter:brightness(1.07)}
+
+/* table glass card --------------------------------------------------*/
+.table-wrap{background:var(--tile-bg);border-radius:16px;box-shadow:var(--shadow);overflow-x:auto;margin-top:.9rem}
+table{width:100%;min-width:700px;border-collapse:collapse;font-size:.9rem}
+thead{background:linear-gradient(135deg,#22c55e,#3b82f6);color:#fff}
+th,td{padding:.75rem 1rem;white-space:nowrap}
+tbody tr:nth-child(even){background:#0001} tbody tr:hover{background:#0ea5e91a}
+.sel-icon{cursor:pointer;font-size:1rem;color:var(--pri);opacity:.8}
+.sel-icon:hover{opacity:1}
+
+/* mobile tweaks -----------------------------------------------------*/
+@media (max-width:600px){
+
+  /* shrink side‑padding so content hugs viewport edges
+     (main already has ~1.2 rem from base.html) */
+  .sms-form{padding:1rem .25rem;margin:0}
+
+  /* table stretches full‑bleed */
+  .table-wrap{margin-left:-.25rem;margin-right:-.25rem;border-radius:0}
+
+  /* hero flush across viewport */
+  .hero{border-radius:0}
+
+  /* text / control size */
+  .form-control,.form-select{font-size:.82rem;padding:.55rem 1rem}
+  th,td{font-size:.8rem;padding:.6rem .8rem}
+
+  /* stack buttons */
+  .btn-main,.btn-alt{flex:1 1 100%;justify-content:center}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- hero -->
+<div class="hero"><h2>✉️ Send SMS</h2></div>
+
+<form method="post" action="{% url 'sms_send' %}" class="sms-form needs-validation" novalidate>
+  {% csrf_token %}
+
+  <!-- message -->
+  <div class="mb-4">
+    <label for="message">Message <span id="charCount" class="counter">0/160</span></label>
+    <textarea id="message" name="message" rows="3" maxlength="612"
+              class="form-control" placeholder="Type your message…" required></textarea>
+    <div class="invalid-feedback">Please enter a message.</div>
+  </div>
+
+  <!-- recipient type -->
+  <div class="mb-4">
+    <label for="recipient_type">Recipient Type</label>
+    <select id="recipient_type" name="recipient_type" class="form-select" required>
+      <option value="">Choose…</option>
+      <option value="guardians">Parents / Guardians</option>
+      <option value="staff">Staff</option>
+    </select>
+  </div>
+
+  <!-- guardians ------------------------------------------------------>
+  <section id="guardianBox" style="display:none;">
+    <div class="row g-3 mb-2">
+      <div class="col-6 col-md-4">
+        <label>Student Search</label>
+        <input id="stuSearch" class="form-control" placeholder="e.g. John…">
+      </div>
+      <div class="col-6 col-md-4">
+        <label>Class</label>
+        <select id="classFilter" class="form-select">
+          <option value="">All Classes</option>
+          {% for cls in classes %}<option>{{ cls.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-md-4 d-flex align-items-end">
+        <div class="k-count">Visible <span class="pill" id="stuVis">0</span> · Selected <span class="pill" id="stuSel">0</span></div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table id="stuTable">
+        <thead><tr>
+          <th><i class="sel-icon bi bi-check-square" data-target="stuChk" title="Mark all / Un‑mark"></i></th>
+          <th>Name</th><th>Class</th><th>Guardian 1</th><th>Guardian 2</th>
+        </tr></thead>
+        <tbody>
+        {% for stu in students %}
+          <tr data-name="{{ stu.first_name }} {{ stu.middle_name }} {{ stu.last_name }}"
+              data-class="{{ stu.get_current_class.name|default:'-' }}">
+            <td><input type="checkbox" name="student_ids" value="{{ stu.id }}" class="stuChk"></td>
+            <td>{{ stu.first_name }}{% if stu.middle_name %} {{ stu.middle_name }}{% endif %} {{ stu.last_name }}</td>
+            <td>{{ stu.get_current_class.name|default:'—' }}</td>
+            <td>{{ stu.guardian1_phone }}</td>
+            <td>{{ stu.guardian2_phone|default:'—' }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- staff ---------------------------------------------------------->
+  <section id="staffBox" style="display:none;">
+    <div class="row g-3 mb-2">
+      <div class="col-12 col-md-6">
+        <label>Staff Search</label>
+        <input id="staffSearch" class="form-control" placeholder="e.g. Mary…">
+      </div>
+      <div class="col-12 col-md-6 d-flex align-items-end">
+        <div class="k-count">Visible <span class="pill" id="stfVis">0</span> · Selected <span class="pill" id="stfSel">0</span></div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table id="staffTable">
+        <thead><tr>
+          <th><i class="sel-icon bi bi-check-square" data-target="staffChk" title="Mark all / Un‑mark"></i></th>
+          <th>Name</th><th>Phone</th>
+        </tr></thead>
+        <tbody>
+        {% for s in staff %}
+          <tr data-name="{{ s.first_name }} {{ s.last_name }}">
+            <td><input type="checkbox" name="staff_ids" value="{{ s.id }}" class="staffChk"></td>
+            <td>{{ s.first_name }} {{ s.last_name }}</td>
+            <td>{{ s.phone }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- actions -->
+  <div class="d-flex gap-3 flex-wrap mt-4">
+    <button type="submit" class="btn-main">📨 Send SMS</button>
+    <a href="{% url 'sms_history' %}" class="btn-alt">📜 SMS History</a>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.js"></script>
+<script>
+const $=q=>document.querySelector(q), $$=q=>document.querySelectorAll(q);
+
+/* char counter */
+$('#message').oninput=e=>$('#charCount').textContent=`${e.target.value.length}/160`;
+
+/* panel toggle */
+$('#recipient_type').onchange=e=>{
+  const val=e.target.value;
+  $('#guardianBox').style.display = val==='guardians'?'block':'none';
+  $('#staffBox').style.display    = val==='staff'    ?'block':'none';
+  updateCounts();
+};
+
+/* select‑all toggler */
+$$('.sel-icon').forEach(i=>{
+  i.onclick=()=>{
+    const boxes=$$('.'+i.dataset.target);
+    const all=[...boxes].every(b=>b.checked);
+    boxes.forEach(b=>b.checked=!all);
+    updateCounts();
+  };
+});
+
+/* filtering functions */
+function applyFilter(table,searchVal,classVal){
+  const rows=$$(table+' tbody tr'); let vis=0;
+  rows.forEach(r=>{
+    const nm=r.dataset.name.toLowerCase();
+    const cl=r.dataset.class? r.dataset.class.toLowerCase():'';
+    const ok=(nm.includes(searchVal) || !searchVal) && (!classVal||cl===classVal);
+    r.style.display=ok?'':'none'; if(ok) vis++;
+  }); return vis;
+}
+
+/* bind filters */
+['input','change'].forEach(ev=>{
+  $('#stuSearch').addEventListener(ev,updateCounts);
+  $('#classFilter').addEventListener(ev,updateCounts);
+  $('#staffSearch').addEventListener(ev,updateCounts);
+});
+
+/* count pills */
+function updateCounts(){
+  const gVis=($('#guardianBox').style.display==='block') ?
+      applyFilter('#stuTable',$('#stuSearch').value.toLowerCase(),$('#classFilter').value.toLowerCase()):0;
+  $('#stuVis').textContent=gVis; $('#stuSel').textContent=$$('.stuChk:checked').length;
+
+  const sVis=($('#staffBox').style.display==='block') ?
+      applyFilter('#staffTable',$('#staffSearch').value.toLowerCase(),''):0;
+  $('#stfVis').textContent=sVis; $('#stfSel').textContent=$$('.staffChk:checked').length;
+}
+document.addEventListener('change',e=>{
+  if(e.target.matches('.stuChk,.staffChk')) updateCounts();
+});
+updateCounts();
+
+/* bootstrap‑like client validation */
+document.querySelector('.needs-validation').addEventListener('submit',function(e){
+  if(!this.checkValidity()){e.preventDefault();e.stopPropagation();}
+  this.classList.add('was-validated');
+});
+</script>
+{% endblock %}

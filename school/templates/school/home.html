@@ -1,0 +1,171 @@
+{% extends "school/base.html" %}
+{% load humanize %}
+
+{% block title %}Dashboard • Analytics{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{
+  --slate:#334155;
+  --tile-bg:linear-gradient(135deg,#fff,#f9fafb);
+  --card-shadow:0 6px 18px rgba(0,0,0,.1);
+}
+body{background:linear-gradient(135deg,var(--light),#e0e7ff)}
+
+/* header strip */
+.hero{background:linear-gradient(135deg,var(--slate),var(--pri));
+  color:#fff;padding:1.8rem 1.5rem;border-radius:0 0 22px 22px;box-shadow:var(--card-shadow)}
+.hero small{opacity:.85}
+
+/* KPI tiles */
+.kpi-wrap{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin:1.8rem 0}
+.kpi{position:relative;flex:1 1 175px;background:var(--tile-bg);border-radius:16px;padding:1rem;
+     text-align:center;box-shadow:var(--card-shadow);transition:transform .25s}
+.kpi:hover{transform:translateY(-4px)}
+.kpi h4{font-size:.95rem;margin:.25rem 0 .35rem;color:var(--slate)}
+.kpi span{font-size:1.55rem;font-weight:800;color:var(--pri)}
+.kpi .goto{position:absolute;top:8px;right:10px;color:var(--sec);font-size:.9rem;opacity:.8}
+.kpi .goto:hover{opacity:1}
+
+/* chart shell */
+.chart-box{background:#fff;border-radius:16px;box-shadow:var(--card-shadow)}
+.chart-box header{padding:.7rem 1.1rem;font-weight:700;border-bottom:1px solid #e5e7eb}
+canvas.big{width:100%!important;height:46vh;max-height:420px;min-height:220px}
+@media(max-width:768px){canvas.big{height:34vh}}
+
+.fin{background:var(--tile-bg);border-radius:16px;padding:1.4rem;box-shadow:var(--card-shadow)}
+
+/* quick‑action pills */
+.action-btn{background:linear-gradient(45deg,var(--pri),var(--sec));
+  border:none;color:#fff;border-radius:9999px;padding:4px 12px;font-size:.8rem;font-weight:600;
+  transition:all .2s}
+.action-btn:hover{background:linear-gradient(45deg,var(--sec),var(--pri));
+  transform:translateY(-2px);box-shadow:0 2px 6px rgba(0,0,0,.15)}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero ------------------------------------------------------------>
+<div class="hero">
+  <h2 class="fw-bold">📊 Dashboard Overview</h2>
+  <small>{{ school_name|default:"School" }}</small>
+</div>
+
+<!-- KPI tiles ------------------------------------------------------->
+<div class="kpi-wrap">
+  {% for card in summary_cards %}
+    {# decide destination url by label key #}
+    {% with link="" %}
+      {% if "Student" in card.label %}{% with link='student_list' %}{% endwith %}
+      {% elif "Staff" in card.label %}{% with link='staff_list' %}{% endwith %}
+      {% elif "Class" in card.label %}{% with link='schoolclass_list' %}{% endwith %}
+      {% elif "Academic" in card.label or "Year" in card.label %}{% with link='academicyear_list' %}{% endwith %}
+      {% endif %}
+    {% endwith %}
+    <div class="kpi">
+      {% if link %}
+        <a href="{% url link %}" class="goto" title="View list"><i class="bi bi-box-arrow-up-right"></i></a>
+      {% endif %}
+      <h4>{{ card.icon }} {{ card.label }}</h4>
+      <span>{{ card.count|intcomma }}</span>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Charts row 1 ---------------------------------------------------->
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="chart-box">
+      <header>📆 Monthly Admissions ({{ current_session|default:"—" }})</header>
+      <div class="p-3"><canvas id="barAdmissions" class="big"></canvas></div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="chart-box">
+      <header>📈 Annual Growth</header>
+      <div class="p-3"><canvas id="barAnnual" class="big"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts row 2 ---------------------------------------------------->
+<div class="row g-3 mt-3">
+  <div class="col-lg-6 col-xl-4">
+    <div class="chart-box">
+      <header>🎂 Gender Distribution</header>
+      <div class="p-3"><canvas id="pieGender" class="big"></canvas></div>
+    </div>
+  </div>
+  <div class="col-lg-6 col-xl-4">
+    <div class="chart-box">
+      <header>🏫 Class Distribution</header>
+      <div class="p-3"><canvas id="lineClass" class="big"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- Finance summary ------------------------------------------------->
+{% if total_income is not None %}
+<div class="row g-3 mt-4">
+  <div class="col-md-6 col-lg-5 col-xl-4">
+    <div class="fin">
+      <h5 class="fw-bold mb-3">💰 Finance ({{ current_session|default:"—" }})</h5>
+      <p>Total Income <span class="text-success">TSh {{ total_income|intcomma }}</span></p>
+      <p>Total Cash‑out <span class="text-danger">TSh {{ total_expense|intcomma }}</span></p>
+      <p>Balance <span class="text-primary">TSh {{ net_balance|intcomma }}</span></p>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Quick actions --------------------------------------------------->
+<div class="row mt-4">
+  <div class="col">
+    <a href="{% url 'student_create' %}"      class="action-btn me-1 mb-2">➕ Add Student</a>
+    <a href="{% url 'student_promotion' %}"   class="action-btn me-1 mb-2">🚀 Promote</a>
+    <a href="{% url 'staff_create' %}"        class="action-btn me-1 mb-2">➕ Add Staff</a>
+    <a href="{% url 'academicyear_create' %}" class="action-btn me-1 mb-2">📅 Add Year</a>
+    <a href="{% url 'schoolclass_create' %}"  class="action-btn me-1 mb-2">🎓 Add Class</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+/* “No‑data” plugin */
+Chart.register({id:"nodata",afterDraw(c){
+  if(c.data.datasets.some(d=>d.data.some(v=>v)))return;
+  const {ctx,chartArea:{left,top,width,height}}=c;
+  ctx.save();ctx.font="600 15px Inter";ctx.fillStyle="#94a3b8";ctx.textAlign="center";
+  ctx.fillText("No data for this period",left+width/2,top+height/2);ctx.restore();
+}});
+
+document.addEventListener("DOMContentLoaded",()=>{
+  const mk = (id, cfg)=>new Chart(document.getElementById(id),cfg);
+
+  const mLab={{ bar_labels|safe }}, mVal={{ bar_vals_students|safe }};
+  const yLab={{ line_labels|safe }}, yVal={{ line_vals|safe }};
+  const gLab={{ pie_labels|safe }}, gVal={{ pie_vals|safe }};
+  const cLab={{ class_labels|safe }}, cVal={{ class_vals|safe }};
+
+  mk("barAdmissions",{type:"bar",
+    data:{labels:mLab,datasets:[{data:mVal,backgroundColor:"#3b82f6"}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}},responsive:true}});
+
+  mk("barAnnual",{type:"bar",
+    data:{labels:yLab,datasets:[{data:yVal,backgroundColor:"#10b981"}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}},responsive:true}});
+
+  mk("pieGender",{type:"doughnut",
+    data:{labels:gLab,datasets:[{data:gVal,backgroundColor:["#3b82f6","#f59e0b","#ef4444","#06b6d4"]}]},
+    options:{cutout:"60%",plugins:{legend:{position:"bottom"}},responsive:true}});
+
+  mk("lineClass",{type:"line",
+    data:{labels:cLab,datasets:[{data:cVal,fill:true,label:"Students",
+      borderColor:"#6b21a8",backgroundColor:"rgba(107,33,168,.15)",tension:.25}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}},responsive:true}});
+});
+</script>
+{% endblock %}

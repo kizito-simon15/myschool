@@ -1,0 +1,225 @@
+{% extends "school/base.html" %}
+{% load humanize %}
+{% block title %}Students – St Theresia‑Avila{% endblock %}
+
+{% block content %}
+<style>
+/* ── palette & base layout ────────────────────────────────*/
+:root{--pri:#0d9488;--sec:#f97316;--bg:#f9fafb;--txt:#1e293b;
+      --success:#16a34a;--danger:#dc2626;--info:#0ea5e9}
+body.dark{--bg:#0f172a;--txt:#e2e8f0}
+
+main{padding:0;background:var(--bg);color:var(--txt);}
+@media(max-width:767px){main{margin-left:0;}}
+
+/* ── header strip ─────────────────────────────────────────*/
+.head{background:linear-gradient(135deg,var(--pri),var(--sec));
+      color:#fff;padding:1rem;text-align:center}
+.head h2{margin:0;font-size:1.32rem;font-weight:700;display:flex;
+         gap:.4rem;justify-content:center}
+
+/* ── KPI badges ───────────────────────────────────────────*/
+.kpis{display:flex;gap:.5rem;overflow-x:auto;padding:.6rem 1rem .4rem}
+.kpi{flex:0 0 120px;background:rgba(255,255,255,.75);backdrop-filter:blur(10px);
+     border-radius:14px;padding:.55rem;text-align:center}
+.kpi h4{margin:0;font-size:.75rem;font-weight:600;color:var(--pri)}
+.kpi span{font-size:1.28rem;font-weight:800}
+body.dark .kpi{background:rgba(17,24,39,.8)}
+
+/* ── controls row ─────────────────────────────────────────*/
+.ctrl{display:flex;flex-wrap:wrap;gap:.55rem;padding:.6rem 1rem}
+.search{flex:1 1 240px;border:none;background:#e2e8f0;border-radius:9999px;
+        padding:.55rem 1rem .55rem 2.25rem;position:relative;font-size:.9rem}
+.search::before{content:"\\F52A";font-family:bootstrap-icons;position:absolute;
+                left:.9rem;top:50%;transform:translateY(-50%);opacity:.6}
+.segment{display:inline-flex;background:#e2e8f0;border-radius:9999px;overflow:hidden}
+.segment button{border:none;background:transparent;padding:.45rem 1rem;font-size:.78rem;
+               font-weight:600;cursor:pointer;color:#475569}
+.segment button.active{background:#fff;color:#000}
+.btn-add{border:none;background:var(--pri);color:#fff;border-radius:9999px;
+        padding:.55rem 1.1rem;font-size:.83rem}
+body.dark .search,body.dark .segment{background:#1e293b}
+
+/* ── class heading pill ──────────────────────────────────*/
+.cls-head{background:#e2e8f0;color:#475569;border-radius:9999px;
+          display:inline-flex;gap:.4rem;align-items:center;font-size:.75rem;
+          font-weight:600;padding:.45rem 1rem;margin:1.1rem .75rem .25rem}
+body.dark .cls-head{background:#1e293b;color:#cbd5e1}
+
+/* ── table view ───────────────────────────────────────────*/
+.wrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:.88rem;min-width:800px}
+thead{background:var(--pri);color:#fff}
+th,td{padding:.6rem}  td{border-bottom:1px solid #e2e8f0}
+tbody tr:hover{background:#ecfeff}
+.no{width:55px;text-align:center;font-weight:600;color:#64748b}
+.status-active{color:var(--success);font-weight:700}
+.status-inactive{color:var(--danger);font-weight:700}
+.actions{display:flex;gap:.35rem;align-items:center}
+.btn-ic{border:none;border-radius:50%;width:28px;height:28px;display:grid;
+        place-items:center;font-size:.8rem;color:#fff}
+.v{background:var(--info)} .e{background:var(--success)} .d{background:var(--danger)}
+body.dark tbody tr:hover{background:#073437} body.dark td{border-color:#1e293b}
+
+/* ── card grid (hidden by default) ────────────────────────*/
+.grid{display:none;grid-gap:1rem;padding:1rem}
+.card{background:#fff;border-radius:12px;padding:1rem;
+      box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.card h3{margin:0 0 .45rem;font-size:1.05rem;color:var(--pri)}
+.card p{margin:.25rem 0;font-size:.85rem}
+.card-actions{display:flex;gap:.35rem;margin-top:.5rem}
+body.dark .card{background:#1e293b}
+@media(max-width:500px){.grid{grid-template-columns:1fr}}
+</style>
+
+<!-- header -->
+<div class="head"><h2>🎓 Students</h2></div>
+
+<!-- kpis -->
+<div class="kpis">
+  <div class="kpi"><h4>Total</h4><span id="kTotal">{{ total_students }}</span></div>
+  <div class="kpi"><h4>Active</h4><span id="kActive">{{ active_students }}</span></div>
+</div>
+
+<!-- controls -->
+<div class="ctrl">
+  <input id="search" class="search" placeholder="Search name or class…">
+  <div class="segment">
+    <button id="sortName"  class="active">Name</button>
+    <button id="sortClass">Class</button>
+    <button id="sortStat">Status</button>
+  </div>
+  <button id="toggleView" class="segment">🔳 Card View</button>
+  <a class="btn-add" href="{% url 'student_create' %}">➕ Add</a>
+</div>
+
+{% for cls, members in groups.items %}
+  <div class="cls-head">{{ cls.name }} <small>({{ members|length }})</small></div>
+
+  <div class="wrap">
+    <table class="tbl"
+           data-class="{{ cls.name|lower }}">
+      <thead><tr>
+        <th class="no">No.</th>
+        <th>Name</th>
+        <th>Guardian 1</th>
+        <th>Guardian 2</th>
+        <th>Status</th>
+        <th class="text-center">Actions</th>
+      </tr></thead>
+      <tbody>
+      {% for s in members %}
+        <tr data-name="{{ s.first_name }} {{ s.middle_name }} {{ s.last_name }}"
+            data-class="{{ cls.name|lower }}"
+            data-active="{{ s.is_active|yesno:'1,0' }}">
+          <td class="no">{{ forloop.counter }}</td>
+          <td>{{ s.first_name }}{% if s.middle_name %} {{ s.middle_name }}{% endif %} {{ s.last_name }}</td>
+          <td>{{ s.guardian1_phone }}</td>
+          <td>{{ s.guardian2_phone|default:"—" }}</td>
+          <td>
+            <span class="status-{% if s.is_active %}active{% else %}inactive{% endif %}">
+              {{ s.is_active|yesno:"Active,Inactive" }}
+            </span>
+          </td>
+          <td class="actions">
+            <a class="btn-ic v" href="{% url 'student_detail' s.pk %}" title="View">👁</a>
+            <a class="btn-ic e" href="{% url 'student_update' s.pk %}" title="Edit">✎</a>
+            <a class="btn-ic d" href="{% url 'student_delete' s.pk %}" title="Delete">🗑</a>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endfor %}
+
+<!-- flat card grid (hidden by default) -->
+<div class="grid" id="cardBox">
+  {% for cls, members in groups.items %}
+    {% for s in members %}
+      <div class="card"
+           data-name="{{ s.first_name }} {{ s.middle_name }} {{ s.last_name }}"
+           data-class="{{ cls.name|lower }}"
+           data-active="{{ s.is_active|yesno:'1,0' }}">
+        <h3>{{ s.first_name }}{% if s.middle_name %} {{ s.middle_name }}{% endif %} {{ s.last_name }}</h3>
+        <p><b>Class:</b> {{ cls.name }}</p>
+        <p><b>Guardian 1:</b> {{ s.guardian1_phone }}</p>
+        <p><b>Guardian 2:</b> {{ s.guardian2_phone|default:"—" }}</p>
+        <p><b>Status:</b>
+          <span class="status-{% if s.is_active %}active{% else %}inactive{% endif %}">
+            {{ s.is_active|yesno:"Active,Inactive" }}
+          </span>
+        </p>
+        <div class="card-actions">
+          <a class="btn-ic v" href="{% url 'student_detail' s.pk %}">👁</a>
+          <a class="btn-ic e" href="{% url 'student_update' s.pk %}">✎</a>
+          <a class="btn-ic d" href="{% url 'student_delete' s.pk %}">🗑</a>
+        </div>
+      </div>
+    {% endfor %}
+  {% endfor %}
+</div>
+
+<script>
+/* helpers */
+const $ = q => document.querySelector(q);
+const $$ = q => [...document.querySelectorAll(q)];
+const rows  = $$('tbody tr');
+const cards = $$('#cardBox .card');
+
+let sortKey='name', asc=true, cardMode=false;
+
+/* live search */
+$('#search').oninput = ({target:{value:v}})=>{
+  const q = v.toLowerCase();
+  rows.forEach(r=>{
+    const txt = (r.dataset.name + ' ' + r.dataset.class).toLowerCase();
+    r.style.display = txt.includes(q)?'':'none';
+  });
+  cards.forEach(c=>{
+    const txt = (c.dataset.name + ' ' + c.dataset.class).toLowerCase();
+    c.style.display = txt.includes(q)?'':'none';
+  });
+  refreshKpi();
+};
+
+/* sort helpers */
+function setSorter(btn,key){
+  btn.onclick=()=>{
+    sortKey=key; asc=!asc;
+    $$('.segment button').forEach(b=>b.classList.toggle('active',b===btn));
+    applySort();
+  };
+}
+setSorter($('#sortName'),'name');
+setSorter($('#sortClass'),'class');
+setSorter($('#sortStat'),'active');
+
+function applySort(){
+  const vis = rows.filter(r=>r.style.display!=='none')
+                  .sort((a,b)=>{
+                    const x=a.dataset[sortKey], y=b.dataset[sortKey];
+                    return asc ? x.localeCompare(y) : y.localeCompare(x);
+                  });
+  vis.forEach(r=>r.parentNode.appendChild(r));
+  const seq = vis.map(r=>r.dataset.name);
+  $('#cardBox').append(...seq.map(n=>cards.find(c=>c.dataset.name===n)));
+}
+
+/* view toggle */
+$('#toggleView').onclick = ()=>{
+  cardMode = !cardMode;
+  $('#toggleView').textContent = cardMode?'📋 Table View':'🔳 Card View';
+  document.querySelectorAll('.wrap').forEach(w=>w.style.display = cardMode?'none':'block');
+  $('#cardBox').style.display = cardMode?'grid':'none';
+};
+
+/* KPI */
+function refreshKpi(){
+  const vis = rows.filter(r=>r.style.display!=='none');
+  $('#kTotal').textContent  = vis.length;
+  $('#kActive').textContent = vis.filter(r=>r.dataset.active==='1').length;
+}
+refreshKpi();
+</script>
+{% endblock %}

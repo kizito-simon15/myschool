@@ -1,0 +1,80 @@
+{% extends "school/base.html" %}
+{% block title %}Users · St Theresia‑Avila{% endblock %}
+
+{% block extra_css %}
+<style>
+.hero{background:linear-gradient(135deg,var(--pri),var(--sec));
+  color:#fff;padding:2rem 1.6rem;border-radius:0 0 28px 28px;
+  box-shadow:0 6px 18px rgba(0,0,0,.12);text-align:center;margin-bottom:2.3rem}
+.controls{display:flex;flex-wrap:wrap;gap:.8rem;justify-content:center;margin-bottom:1rem}
+.search-box{border-radius:9999px;border:1px solid #cbd5e1;padding:.55rem 1.2rem;font-weight:600;width:260px}
+.search-box:focus{border-color:var(--pri);box-shadow:0 0 0 .2rem rgba(13,148,136,.18);outline:none}
+.btn-add{border:none;border-radius:9999px;padding:.6rem 1.5rem;font-weight:700;color:#fff;
+  background:linear-gradient(135deg,var(--pri),var(--sec));transition:transform .25s,box-shadow .25s}
+.btn-add:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(13,148,136,.25)}
+.table-wrap{overflow-x:auto;border-radius:16px;box-shadow:0 6px 18px rgba(0,0,0,.08)}
+table{width:100%;border-collapse:separate;border-spacing:0;background:#fff;min-width:720px}
+thead{background:linear-gradient(135deg,var(--pri),var(--sec));color:#fff}
+thead th{padding:1rem .9rem;font-size:.8rem;font-weight:700;text-transform:uppercase}
+td{padding:.75rem .9rem;white-space:nowrap;font-size:.9rem}
+tbody tr:nth-child(even){background:#f1f5f9}
+tbody tr:hover{background:#ccfbf1}
+.badge{font-size:.74rem;padding:.18rem .55rem;border-radius:9999px}
+.badge-yes{background:#22c55e;color:#fff}
+.badge-no{background:#ef4444;color:#fff}
+.btn-act{border:none;border-radius:9999px;padding:.4rem .9rem;font-size:.75rem;font-weight:700;color:#fff}
+.btn-edit{background:#3b82f6}.btn-del{background:#ef4444}
+.btn-act:hover{filter:brightness(1.1)}
+@media(max-width:768px){.search-box{width:100%}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <h2 class="fw-bold mb-0">👥 User Directory</h2>
+</div>
+
+<div class="controls">
+  <input type="text" id="searchBox" class="search-box" placeholder="🔍 Search user…">
+  <a href="{% url 'register' %}" class="btn-add">➕ Add User</a>
+</div>
+
+<div class="table-wrap">
+  <table id="userTable">
+    <thead><tr>
+      <th>Phone</th><th>Username</th><th>First</th><th>Last</th>
+      <th>Active</th><th>Staff</th><th></th></tr></thead>
+    <tbody>
+      {% for u in users %}
+      <tr data-search="{{ u.phone }} {{ u.username }} {{ u.first_name }} {{ u.last_name }}">
+        <td>{{ u.phone }}</td>
+        <td>{{ u.username }}</td>
+        <td>{{ u.first_name }}</td>
+        <td>{{ u.last_name }}</td>
+        <td><span class="badge {% if u.is_active %}badge-yes{% else %}badge-no{% endif %}">
+          {% if u.is_active %}Yes{% else %}No{% endif %}</span></td>
+        <td><span class="badge {% if u.is_staff %}badge-yes{% else %}badge-no{% endif %}">
+          {% if u.is_staff %}Yes{% else %}No{% endif %}</span></td>
+        <td>
+          <a href="{% url 'user_update' u.pk %}" class="btn-act btn-edit">Edit</a>
+          <a href="{% url 'user_delete' u.pk %}" class="btn-act btn-del">Del</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="text-center py-3">No users found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('searchBox').addEventListener('input',e=>{
+  const q=e.target.value.toLowerCase();
+  document.querySelectorAll('#userTable tbody tr').forEach(r=>{
+    r.style.display=r.dataset.search.toLowerCase().includes(q)?'':'none';
+  });
+});
+</script>
+{% endblock %}

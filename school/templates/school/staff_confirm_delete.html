@@ -1,0 +1,36 @@
+{% extends "school/base.html" %}
+{% block title %}Delete Staff – St. Theresia‑Avila{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{--pri:#dc2626;--sec:#f97316;--bg:#f9fafc;--txt:#1e293b;--shadow:0 3px 12px rgba(0,0,0,.08)}
+body.dark{--bg:#0f172a;--txt:#e2e8f0}
+
+main{margin:0;padding:0;background:var(--bg);color:var(--txt)}
+.head-strip{background:linear-gradient(135deg,var(--pri),var(--sec));color:#fff;text-align:center;padding:1rem;box-shadow:var(--shadow)}
+.head-strip h2{margin:0;font-size:1.35rem;font-weight:700;display:flex;gap:.5rem;justify-content:center}
+
+.card{width:92%;max-width:640px;margin:1.6rem auto;padding:1.6rem;border-radius:14px;background:#fff;box-shadow:var(--shadow);text-align:center}
+body.dark .card{background:#1e293b}
+
+.btn-danger,.btn-sec{border:none;border-radius:9999px;padding:.55rem 1.4rem;font-weight:700;color:#fff;cursor:pointer;transition:.25s}
+.btn-danger{background:#dc2626}
+.btn-danger:hover{filter:brightness(1.08)}
+.btn-sec{background:#64748b}
+.btn-sec:hover{filter:brightness(1.1)}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="head-strip"><h2>🗑 Delete Staff</h2></div>
+
+<div class="card">
+  <p class="mb-4">Are you sure you want to permanently delete<br><strong>{{ staff }}</strong>?</p>
+
+  <form method="post" class="d-flex gap-3 justify-content-center flex-wrap">
+    {% csrf_token %}
+    <button type="submit" class="btn-danger">Yes, Delete</button>
+    <a href="{% url 'staff_detail' staff.pk %}" class="btn-sec">Cancel</a>
+  </form>
+</div>
+{% endblock %}

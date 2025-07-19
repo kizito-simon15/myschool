@@ -1,0 +1,188 @@
+{% extends "school/base.html" %}
+{% load static %}
+{% block title %}
+{% if form.instance.pk %}Edit Student{% else %}Add Student{% endif %} – St. Theresia‑Avila
+{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{
+  --pri:#0d9488; --sec:#f97316; --bg:#f9fafc; --txt:#1e293b;
+  --radius:14px; --shadow:0 3px 12px rgba(0,0,0,.08);
+}
+body.dark{--bg:#0f172a;--txt:#e2e8f0}
+
+main{margin:0;padding:0;background:var(--bg);color:var(--txt)}
+
+/* header strip */
+.head-strip{background:linear-gradient(135deg,var(--pri),var(--sec));
+  color:#fff;text-align:center;padding:1rem;box-shadow:var(--shadow)}
+.head-strip h2{margin:0;font-size:1.35rem;font-weight:700;display:flex;gap:.5rem;justify-content:center}
+
+/* form wrapper */
+.form-shell{width:96%;max-width:750px;margin:1.4rem auto;padding:1rem;border-radius:var(--radius);
+  background:#fff;box-shadow:var(--shadow)}
+body.dark .form-shell{background:#1e293b}
+
+/* inputs */
+label{font-weight:600;margin-bottom:.25rem}
+.form-control,.form-select{border:1.5px solid #cbd5e1;border-radius:18px;padding:.55rem .9rem;font-weight:600;
+  background:#fff;color:#111;transition:border-color .2s}
+.form-control:focus,.form-select:focus{border-color:var(--pri);box-shadow:0 0 0 2px rgba(13,148,136,.18)}
+.input-group-text{border:1.5px solid #cbd5e1;border-right:none;border-radius:18px 0 0 18px;background:#e2e8f0;font-weight:600}
+body.dark .input-group-text{background:#334155;color:#e2e8f0;border-color:#334155}
+.invalid-feedback{font-size:.8rem}
+
+/* toggle switch */
+.switch{position:relative;display:inline-block;width:46px;height:26px}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#d1d5db;border-radius:34px;transition:.2s}
+.slider:before{position:absolute;content:"";height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+input:checked + .slider{background:var(--pri)}
+input:checked + .slider:before{transform:translateX(20px)}
+.small-lbl{margin-left:.5rem;font-weight:600;font-size:.88rem}
+
+/* buttons */
+.btn-main,.btn-sec{border:none;border-radius:9999px;padding:.55rem 1.4rem;font-weight:700;color:#fff;cursor:pointer;transition:.25s}
+.btn-main{background:linear-gradient(135deg,var(--pri),var(--sec))}
+.btn-main:hover{filter:brightness(1.06)}
+.btn-sec{background:#64748b}
+.btn-sec:hover{filter:brightness(1.1)}
+
+@media(max-width:520px){
+  .btn-main,.btn-sec{flex:1 1 100%;margin-top:.4rem}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="head-strip">
+  <h2>🎓 {% if form.instance.pk %}Edit{% else %}Add{% endif %} Student</h2>
+</div>
+
+<div class="form-shell">
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger mb-3">{{ form.non_field_errors }}</div>
+  {% endif %}
+  {% if form.current_class.disabled %}
+    <div class="alert alert-warning mb-3">{{ form.current_class.help_text }}</div>
+  {% endif %}
+
+  <form id="studentForm" method="post" novalidate class="needs-validation">
+    {% csrf_token %}
+    <div class="row g-3">
+
+      {# ---------- FIRST / MIDDLE / LAST NAME ---------- #}
+      <div class="col-sm-4">
+        <label for="id_first_name">First name</label>
+        {{ form.first_name }}
+        <div class="invalid-feedback">{{ form.first_name.errors|join:", " }}</div>
+      </div>
+      <div class="col-sm-4">
+        <label for="id_middle_name">Middle name</label>
+        {{ form.middle_name }}
+        <div class="invalid-feedback">{{ form.middle_name.errors|join:", " }}</div>
+      </div>
+      <div class="col-sm-4">
+        <label for="id_last_name">Last name</label>
+        {{ form.last_name }}
+        <div class="invalid-feedback">{{ form.last_name.errors|join:", " }}</div>
+      </div>
+
+      {# ---------- GENDER ---------- #}
+      <div class="col-sm-4">
+        <label for="id_gender">Gender</label>
+        {{ form.gender }}
+        <div class="invalid-feedback">{{ form.gender.errors|join:", " }}</div>
+      </div>
+
+ {# ---------- ADMISSION DATE ---------- #}
+<div class="col-sm-4">
+  <label for="id_admission_date">Admission date</label>
+  {{ form.admission_date }}
+  <div class="invalid-feedback">{{ form.admission_date.errors|join:", " }}</div>
+</div>
+
+      {# ---------- CLASS ---------- #}
+      <div class="col-sm-4">
+        <label for="id_current_class">Class</label>
+        {{ form.current_class }}
+        <div class="invalid-feedback">{{ form.current_class.errors|join:", " }}</div>
+      </div>
+
+      {# ---------- GUARDIAN 1 PHONE ---------- #}
+      <div class="col-sm-6">
+        <label>Guardian 1 phone <small class="text-muted">(required)</small></label>
+        <div class="input-group">
+          <span class="input-group-text">+255</span>
+          <input type="text" id="id_guardian1_strip" class="form-control {% if form.guardian1_phone.errors %}is-invalid{% endif %}"
+                 placeholder="7XXXXXXXX" value="{{ form.guardian1_phone.value|stringformat:'s'|cut:'+255' }}" maxlength="9" required>
+          <div class="invalid-feedback">{{ form.guardian1_phone.errors|join:", " }}</div>
+        </div>
+      </div>
+
+      {# ---------- GUARDIAN 2 PHONE ---------- #}
+      <div class="col-sm-6">
+        <label>Guardian 2 phone <small class="text-muted">(optional)</small></label>
+        <div class="input-group">
+          <span class="input-group-text">+255</span>
+          <input type="text" id="id_guardian2_strip" class="form-control {% if form.guardian2_phone.errors %}is-invalid{% endif %}"
+                 placeholder="7XXXXXXXX" value="{{ form.guardian2_phone.value|stringformat:'s'|cut:'+255' }}" maxlength="9">
+          <div class="invalid-feedback">{{ form.guardian2_phone.errors|join:", " }}</div>
+        </div>
+      </div>
+
+      {# ---------- ACTIVE SWITCH ---------- #}
+      <div class="col-sm-6 d-flex align-items-center mt-4 mt-sm-3">
+        <label class="switch mb-0">
+          <input type="checkbox" name="is_active" id="id_is_active" {% if form.initial.is_active %}checked{% endif %}>
+          <span class="slider"></span>
+        </label>
+        <span class="small-lbl">Active</span>
+      </div>
+
+    </div>
+
+    <div class="d-flex gap-3 flex-wrap mt-4">
+      <button type="submit" class="btn-main">💾 Save</button>
+      <a href="{% url 'student_list' %}" class="btn-sec">↩︎ Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ====== PHONE HANDLING ================================= */
+const p1 = document.getElementById('id_guardian1_strip');
+const p2 = document.getElementById('id_guardian2_strip');
+[p1,p2].forEach(inp=>{
+  inp.addEventListener('input',()=>{inp.value = inp.value.replace(/[^0-9]/g,'').slice(0,9);});
+});
+
+/* inject hidden +255 values before submit */
+document.getElementById('studentForm').addEventListener('submit',e=>{
+  const form = e.target;
+
+  function inject(inp, name){
+    if(inp.value){
+      const hidden=document.createElement('input');
+      hidden.type='hidden';hidden.name=name;
+      hidden.value='+255'+inp.value;
+      form.appendChild(hidden);
+    }
+  }
+
+  inject(p1,'guardian1_phone');
+  inject(p2,'guardian2_phone');
+});
+
+/* ====== BOOTSTRAP‑LIKE VALIDATION ======================= */
+document.querySelectorAll('.needs-validation').forEach(form=>{
+  form.addEventListener('submit',e=>{
+    if(!form.checkValidity()){e.preventDefault();e.stopPropagation();}
+    form.classList.add('was-validated');
+  });
+});
+</script>
+{% endblock %}

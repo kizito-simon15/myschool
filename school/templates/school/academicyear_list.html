@@ -1,0 +1,142 @@
+{% extends "school/base.html" %}
+{% load humanize %}
+{% block title %}Academic Years – St. Theresia‑Avila{% endblock %}
+
+{% block content %}
+<style>
+:root{--pri:#0d9488;--sec:#f97316;--neu:#e0e7ff;--shadow:0 3px 10px rgba(0,0,0,.08)}
+body.dark{--neu:#1e293b}
+
+/* header */
+.head-strip{background:linear-gradient(135deg,var(--pri),var(--sec));color:#fff;
+  text-align:center;padding:1rem;border-radius:0 0 16px 16px;box-shadow:var(--shadow)}
+.head-strip h2{margin:0;font-size:1.4rem;font-weight:700;display:flex;gap:.45rem;justify-content:center}
+
+/* KPI cards */
+.kpi-row{display:flex;gap:.6rem;flex-wrap:wrap;margin:1rem 0}
+.kpi{flex:1 1 150px;background:var(--neu);border-radius:12px;padding:.9rem;text-align:center;
+     box-shadow:var(--shadow)}
+.kpi h4{margin:0 0 .2rem;font-size:.8rem;color:var(--sec);font-weight:700}
+.kpi span{font-size:1.25rem;font-weight:800;color:var(--pri)}
+
+/* controls */
+.controls{display:flex;flex-wrap:wrap;gap:.55rem;margin-bottom:1rem}
+.controls input,.controls button{border:none;border-radius:9999px;padding:.45rem 1.1rem;font-size:.84rem;
+  background:var(--neu);box-shadow:var(--shadow);font-weight:600}
+.controls button{cursor:pointer}
+.btn-add{background:linear-gradient(135deg,var(--pri),var(--sec));color:#fff}
+
+/* table */
+.table-wrap{overflow-x:auto;margin-bottom:1.2rem}
+table{width:100%;min-width:560px;border-collapse:collapse;background:var(--neu)}
+thead{background:linear-gradient(135deg,var(--pri),var(--sec));color:#fff}
+th,td{padding:.6rem 1rem;font-size:.82rem;white-space:nowrap}
+tbody tr:hover{background:rgba(13,148,136,.08)}
+.status-current{color:#16a34a;font-weight:700}
+.status-not{color:#dc2626;font-weight:700}
+.btn-sm{border:none;border-radius:9999px;padding:.35rem .75rem;font-size:.78rem;font-weight:600;color:#fff}
+.edit{background:#16a34a} .del{background:#dc2626}
+
+/* card grid */
+.grid{display:none;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;padding:1rem}
+.card{background:var(--neu);border-radius:12px;padding:1rem;box-shadow:var(--shadow)}
+.card h3{margin:0 0 .4rem;font-size:1.05rem;color:var(--pri)}
+.card p{margin:.25rem 0;font-size:.82rem}
+</style>
+
+<div class="head-strip"><h2>📅 Academic Years</h2></div>
+
+<div class="kpi-row">
+  <div class="kpi"><h4>Total</h4><span id="tot">{{ total_years }}</span></div>
+  <div class="kpi"><h4>Current</h4><span id="cur">{{ current_years }}</span></div>
+  <button class="btn-add" onclick="location.href='{% url 'academicyear_create' %}'">➕ Add Year</button>
+</div>
+
+<!-- controls -->
+<div class="controls">
+  <input id="search" placeholder="🔍 search year…">
+  <button id="sortYear">Year ▲</button>
+  <button id="sortCurr">Current ▲</button>
+  <button id="toggle">🔳 Card View</button>
+</div>
+
+<!-- table -->
+<div class="table-wrap">
+  <table id="tbl">
+    <thead><tr><th>Year</th><th>Current</th><th>Created</th><th></th></tr></thead>
+    <tbody>
+    {% for y in academic_years %}
+      <tr data-id="{{ y.pk }}" data-year="{{ y.year }}" data-current="{{ y.is_current }}" data-created="{{ y.created_at|date:'Y-m-d' }}">
+        <td>{{ y.year }}</td>
+        <td><span class="{% if y.is_current %}status-current{% else %}status-not{% endif %}">
+            {{ y.is_current|yesno:"Yes,No" }}</span></td>
+        <td>{{ y.created_at|date:"Y-m-d" }}</td>
+        <td>
+          <a class="btn-sm edit" href="{% url 'academicyear_update' y.pk %}">✏️</a>
+          <a class="btn-sm del"  href="{% url 'academicyear_delete' y.pk %}">🗑️</a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="4" class="text-center text-muted py-3">No academic years.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- card grid -->
+<div id="cards" class="grid">
+  {% for y in academic_years %}
+    <div class="card" data-id="{{ y.pk }}">
+      <h3>{{ y.year }}</h3>
+      <p><b>Current:</b> {{ y.is_current|yesno:"Yes,No" }}</p>
+      <p><b>Created:</b> {{ y.created_at|date:"Y-m-d" }}</p>
+      <div class="d-flex gap-2 mt-2">
+        <a class="btn-sm edit" href="{% url 'academicyear_update' y.pk %}">✏️</a>
+        <a class="btn-sm del"  href="{% url 'academicyear_delete' y.pk %}">🗑️</a>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  const rows=[...document.querySelectorAll('#tbl tbody tr')];
+  const cards=[...document.querySelectorAll('#cards .card')];
+  const search=document.getElementById('search');
+  const sortYear=document.getElementById('sortYear');
+  const sortCurr=document.getElementById('sortCurr');
+  const toggle=document.getElementById('toggle');
+  let yearAsc=true,currAsc=true,table=true;
+
+  const updateKpi=()=>{document.getElementById('tot').textContent=rows.filter(r=>r.style.display!=='none').length;
+    document.getElementById('cur').textContent=rows.filter(r=>r.style.display!=='none'&&r.dataset.current==="True").length;}
+
+  const filter=()=>{
+    const q=search.value.trim();
+    rows.forEach(r=>{r.style.display=q&&!(r.dataset.year.includes(q))?'none':''});
+    cards.forEach(c=>{const r=rows.find(rw=>rw.dataset.id===c.dataset.id);
+                      c.style.display=r.style.display});
+    updateKpi();
+  };
+  search.oninput=filter;
+
+  const sort=(key,asc,num)=>{const vis=rows.filter(r=>r.style.display!=='none')
+    .sort((a,b)=>asc? (num? a.dataset[key]-b.dataset[key]:a.dataset[key].localeCompare(b.dataset[key])):
+                       (num? b.dataset[key]-a.dataset[key]:b.dataset[key].localeCompare(a.dataset[key])));
+    vis.forEach(r=>r.parentNode.appendChild(r));
+    const order=vis.map(r=>r.dataset.id);
+    document.getElementById('cards').append(...order.map(id=>cards.find(c=>c.dataset.id===id)));
+  };
+
+  sortYear.onclick=()=>{sort('year',yearAsc=true^yearAsc,true);sortYear.textContent=`Year ${yearAsc?'▲':'▼'}`};
+  sortCurr.onclick=()=>{sort('current',currAsc=true^currAsc,false);sortCurr.textContent=`Current ${currAsc?'▲':'▼'}`};
+
+  toggle.onclick=()=>{
+    table=!table;
+    document.querySelector('.table-wrap').style.display=table?'block':'none';
+    document.getElementById('cards').style.display=table?'none':'grid';
+    toggle.textContent=table?'🔳 Card View':'📋 Table View';
+  };
+});
+</script>
+{% endblock %}

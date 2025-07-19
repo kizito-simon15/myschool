@@ -1,0 +1,155 @@
+{% extends "school/base.html" %}
+{% load static %}
+{% block title %}
+{% if form.instance.pk %}Edit Staff{% else %}Add Staff{% endif %} – St. Theresia‑Avila
+{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{
+  --pri:#0d9488; --sec:#f97316; --bg:#f9fafc; --txt:#1e293b;
+  --radius:14px; --shadow:0 3px 12px rgba(0,0,0,.08);
+}
+body.dark{--bg:#0f172a;--txt:#e2e8f0}
+
+main{margin:0;padding:0;background:var(--bg);color:var(--txt)}
+
+/* header strip */
+.head-strip{background:linear-gradient(135deg,var(--pri),var(--sec));
+  color:#fff;text-align:center;padding:1rem;box-shadow:var(--shadow)}
+.head-strip h2{margin:0;font-size:1.35rem;font-weight:700;display:flex;gap:.5rem;justify-content:center}
+
+/* form wrapper */
+.form-shell{width:96%;max-width:720px;margin:1.3rem auto;padding:1rem;border-radius:var(--radius);
+  background:#fff;box-shadow:var(--shadow)}
+body.dark .form-shell{background:#1e293b}
+
+/* inputs */
+label{font-weight:600;margin-bottom:.25rem}
+.form-control,.form-select{border:1.5px solid #cbd5e1;border-radius:18px;padding:.55rem .9rem;font-weight:600;
+  background:#fff;color:#111;transition:border-color .2s}
+.form-control:focus,.form-select:focus{border-color:var(--pri);box-shadow:0 0 0 2px rgba(13,148,136,.18)}
+.input-group-text{border:1.5px solid #cbd5e1;border-right:none;border-radius:18px 0 0 18px;background:#e2e8f0;font-weight:600}
+body.dark .input-group-text{background:#334155;color:#e2e8f0;border-color:#334155}
+.invalid-feedback{font-size:.8rem}
+
+/* toggle switch for is_active */
+.switch{position:relative;display:inline-block;width:46px;height:26px}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#d1d5db;border-radius:34px;transition:.2s}
+.slider:before{position:absolute;content:"";height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+input:checked + .slider{background:var(--pri)}
+input:checked + .slider:before{transform:translateX(20px)}
+/* small text after switch */
+.small-lbl{margin-left:.5rem;font-weight:600;font-size:.88rem}
+
+/* buttons */
+.btn-main,.btn-sec{border:none;border-radius:9999px;padding:.55rem 1.4rem;font-weight:700;color:#fff;cursor:pointer;transition:.25s}
+.btn-main{background:linear-gradient(135deg,var(--pri),var(--sec))}
+.btn-main:hover{filter:brightness(1.06)}
+.btn-sec{background:#64748b}
+.btn-sec:hover{filter:brightness(1.1)}
+
+@media(max-width:520px){
+  .btn-main,.btn-sec{flex:1 1 100%;margin-top:.4rem}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="head-strip">
+  <h2>👤 {% if form.instance.pk %}Edit{% else %}Add{% endif %} Staff</h2>
+</div>
+
+<div class="form-shell">
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger mb-3">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <form id="staffForm" method="post" novalidate class="needs-validation">
+    {% csrf_token %}
+    <div class="row g-3">
+
+      {# ---------- FIRST / LAST NAME ---------- #}
+      <div class="col-sm-6">
+        <label for="id_first_name">First name</label>
+        {{ form.first_name }}
+        <div class="invalid-feedback">{{ form.first_name.errors|join:", " }}</div>
+      </div>
+
+      <div class="col-sm-6">
+        <label for="id_last_name">Last name</label>
+        {{ form.last_name }}
+        <div class="invalid-feedback">{{ form.last_name.errors|join:", " }}</div>
+      </div>
+
+      {# ---------- PHONE (with +255 chip) ---------- #}
+      <div class="col-sm-6">
+        <label>Mobile</label>
+        <div class="input-group">
+          <span class="input-group-text">+255</span>
+          <input type="text" id="id_phone_strip" class="form-control {% if form.phone.errors %}is-invalid{% endif %}"
+                 placeholder="7XXXXXXXX" value="{{ form.phone.value|stringformat:'s'|cut:'+255' }}" maxlength="9" required>
+          <div class="invalid-feedback">{{ form.phone.errors|join:", " }}</div>
+        </div>
+      </div>
+
+      {# ---------- EMAIL ---------- #}
+      <div class="col-sm-6">
+        <label for="id_email">Email</label>
+        {{ form.email }}
+        <div class="invalid-feedback">{{ form.email.errors|join:", " }}</div>
+      </div>
+
+      {# ---------- HIRE DATE ---------- #}
+      <div class="col-sm-6">
+        <label for="id_hire_date">Hire date</label>
+        {{ form.hire_date }}
+        <div class="invalid-feedback">{{ form.hire_date.errors|join:", " }}</div>
+      </div>
+
+      {# ---------- ACTIVE SWITCH ---------- #}
+      <div class="col-sm-6 d-flex align-items-center mt-4 mt-sm-3">
+        <label class="switch mb-0">
+          <input type="checkbox" name="is_active" id="id_is_active" {% if form.initial.is_active %}checked{% endif %}>
+          <span class="slider"></span>
+        </label>
+        <span class="small-lbl">Active</span>
+      </div>
+    </div>
+
+    <div class="d-flex gap-3 flex-wrap mt-4">
+      <button type="submit" class="btn-main">💾 Save</button>
+      <a href="{% url 'staff_list' %}" class="btn-sec">↩︎ Cancel</a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ====== PHONE HANDLING ================================= */
+const raw = document.getElementById('id_phone_strip');
+/* numeric only, max 9 digits */
+raw.addEventListener('input',()=>{raw.value = raw.value.replace(/[^0-9]/g,'').slice(0,9);});
+
+/* inject +255 before submit */
+document.getElementById('staffForm').addEventListener('submit',e=>{
+  if(raw.checkValidity()){
+    const hidden=document.createElement('input');
+    hidden.type='hidden';hidden.name='phone';
+    hidden.value='+255'+raw.value;
+    e.target.appendChild(hidden);
+  }
+});
+
+/* ====== BOOTSTRAP‑LIKE FORM VALIDATION ================ */
+document.querySelectorAll('.needs-validation').forEach(form=>{
+  form.addEventListener('submit',e=>{
+    if(!form.checkValidity()){e.preventDefault();e.stopPropagation();}
+    form.classList.add('was-validated');
+  });
+});
+</script>
+{% endblock %}

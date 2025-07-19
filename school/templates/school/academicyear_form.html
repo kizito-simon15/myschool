@@ -1,0 +1,69 @@
+{% extends "school/base.html" %}
+{% block title %}
+  {% if form.instance.pk %}Edit{% else %}Add{% endif %} Academic Year – St. Theresia‑Avila
+{% endblock %}
+
+{% block content %}
+<style>
+:root{--pri:#0d9488;--sec:#f97316;--neu:#e0e7ff;--shadow:0 3px 10px rgba(0,0,0,.08)}
+body.dark{--neu:#1e293b}
+
+/* header */
+.head-strip{background:linear-gradient(135deg,var(--pri),var(--sec));
+  color:#fff;text-align:center;padding:1rem;border-radius:0 0 16px 16px;box-shadow:var(--shadow)}
+.head-strip h2{margin:0;font-size:1.35rem;font-weight:700;display:flex;gap:.45rem;justify-content:center}
+
+/* card */
+.card{max-width:680px;margin:1.4rem auto;padding:1.6rem;background:#fff;
+      border-radius:14px;box-shadow:var(--shadow)}
+body.dark .card{background:#1e293b}
+
+/* inputs */
+.form-control,.form-select,.form-check-input{border:none;border-radius:12px;padding:.45rem .9rem;
+  background:var(--neu);font-weight:600;box-shadow:inset 2px 2px 4px rgba(0,0,0,.06),
+  inset -2px -2px 4px rgba(255,255,255,.8)}
+.form-control:focus,.form-select:focus{outline:none;box-shadow:inset 1px 1px 2px rgba(0,0,0,.12),
+  inset -1px -1px 2px rgba(255,255,255,.9)}
+
+.btn-main,.btn-sec{border:none;border-radius:9999px;padding:.55rem 1.4rem;font-weight:700;color:#fff;cursor:pointer}
+.btn-main{background:linear-gradient(135deg,var(--pri),var(--sec))}
+.btn-sec{background:#64748b}
+</style>
+
+<div class="head-strip"><h2>📅 {% if form.instance.pk %}Edit{% else %}Add{% endif %} Academic Year</h2></div>
+
+<div class="card">
+  <form id="academicYearForm" method="post" novalidate>
+    {% csrf_token %}
+    <div class="row g-3">
+      {% for field in form %}
+        <div class="{% if field.name == 'is_current' %}col-12{% else %}col-md-6{% endif %}">
+          <label class="fw-bold mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>{% endif %}
+          {% if field.help_text %}<small class="text-muted">{{ field.help_text }}</small>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="d-flex gap-3 flex-wrap mt-4">
+      <button type="submit" class="btn-main">💾 Save</button>
+      <a href="{% url 'academicyear_list' %}" class="btn-sec">↩︎ Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  /* simple client‑side year range check */
+  const yr=document.getElementById('id_year');
+  yr.addEventListener('blur',()=>{
+    const v=parseInt(yr.value);
+    if(isNaN(v)||v<2000||v>2100){
+      yr.classList.add('is-invalid');
+      toastr.error("Year must be between 2000 and 2100");
+    }else yr.classList.remove('is-invalid');
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% load static widget_tweaks %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Login · St Theresia‑Avila</title>
+
+  <!-- vendors -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+  :root{
+    --pri:#0d9488;        /* teal */
+    --pri-dark:#0b6e64;
+    --sec:#f97316;        /* orange */
+    --g1:#14b8a6;         /* mid‑teal */
+    --g2:#f59e0b;         /* amber */
+    --rad:20px;
+    --shadow:0 16px 40px rgba(0,0,0,.22);
+  }
+  *{box-sizing:border-box}
+  html,body{
+    margin:0;height:100%;
+    font-family:Inter,sans-serif;font-size:15px;
+    background:radial-gradient(circle at 15% 20%,#ecfeff 0%,#ccfbf1 30%,#fff 70%);
+    display:flex;align-items:center;justify-content:center;
+  }
+  /* glass card ------------------------------------------------------- */
+  .glass{
+    width:100%;max-width:440px;padding:3.1rem 2.3rem;
+    border-radius:var(--rad);background:rgba(255,255,255,.67);
+    backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+    box-shadow:var(--shadow);position:relative;color:#0f172a;
+  }
+  @media(prefers-color-scheme:dark){
+    html,body{background:radial-gradient(circle at 15% 20%,#134e4a 0%,#0f766e 35%,#0f172a 80%)}
+    .glass{background:rgba(15,23,42,.58);color:#e2e8f0}
+  }
+  /* logo + heading --------------------------------------------------- */
+  .logo-ring{
+    width:100px;height:100px;border-radius:50%;object-fit:cover;
+    border:5px solid var(--pri);box-shadow:0 0 0 5px #fff;
+  }
+  .sysname{font-weight:900;font-size:1.25rem;margin:.9rem 0 0;
+           background:linear-gradient(135deg,var(--g1),var(--g2));
+           -webkit-background-clip:text;color:transparent}
+  .tagline{font-size:.9rem;color:#64748b;margin-bottom:2rem}
+  /* form elements ---------------------------------------------------- */
+  label{font-weight:600;color:var(--pri-dark)}
+  .form-control{
+    border-radius:50px;padding:.7rem 1.2rem;border:1px solid #cbd5e1;
+    background:#f9fafb;font-weight:600;transition:border-color .25s,box-shadow .25s;
+  }
+  .form-control:focus{
+    border-color:var(--pri);background:#fff;
+    box-shadow:0 0 0 .18rem rgba(13,148,136,.22);
+  }
+  .pw-wrap{position:relative}
+  .pw-wrap .toggle{
+    position:absolute;top:50%;right:1rem;
+    transform:translateY(-50%);border:none;background:none;
+    color:#64748b;font-size:1.15rem;cursor:pointer;
+  }
+  .toggle:hover{color:var(--pri)}
+  /* button ------------------------------------------------------------ */
+  .btn-main{
+    border:none;border-radius:9999px;padding:.8rem;font-weight:700;color:#fff;
+    background:linear-gradient(135deg,var(--pri),var(--sec));
+    transition:transform .25s,box-shadow .25s;
+  }
+  .btn-main:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(13,148,136,.28)}
+  /* footer ------------------------------------------------------------ */
+  .foot{font-size:.83rem;color:#64748b;text-align:center;margin-top:1.7rem}
+  .foot a{color:var(--pri-dark);font-weight:600;text-decoration:none}
+  /* shake effect when there are form errors -------------------------- */
+  .shake{animation:shake .34s both}
+  @keyframes shake{0%,100%{translate:0}20%,60%{translate:-5px}40%,80%{translate:5px}}
+  </style>
+</head>
+<body>
+
+  <div class="glass" id="card">
+    <div class="text-center">
+      <img src="{% static 'images/logo.jpg' %}" class="logo-ring" alt="Logo">
+      <div class="sysname">St Theresia‑Avila System</div>
+      <div class="tagline">Secure Login Portal</div>
+    </div>
+
+    {% if messages %}
+      {% for m in messages %}
+        <div class="alert alert-{{ m.tags|default:'info' }} py-2 text-center mb-3">{{ m }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger text-center py-2 mb-3">
+        {% for err in form.non_field_errors %}{{ err }}{% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <!-- username -->
+      <div class="mb-3">
+        <label for="id_username" class="form-label">Username / Mobile</label>
+        {% render_field form.username class+="form-control" placeholder="e.g. admin or 07…" autofocus="autofocus" %}
+        {% if form.username.errors %}
+          <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <!-- password -->
+      <div class="mb-3">
+        <label for="id_password" class="form-label">Password</label>
+        <div class="pw-wrap">
+          {% render_field form.password class+="form-control" placeholder="••••••••" %}
+          <button type="button" class="toggle" id="pwToggle"><i class="bi bi-eye-slash"></i></button>
+        </div>
+        {% if form.password.errors %}
+          <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <button class="btn-main w-100">Login</button>
+    </form>
+
+    <div class="foot">Need help? <a href="mailto:admin@example.com">Contact Admin</a></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+  /* toggle show / hide password */
+  document.getElementById('pwToggle').onclick = ()=>{
+      const pw=document.getElementById('id_password'),
+            eye=document.querySelector('#pwToggle i'),
+            show=pw.type==='password';
+      pw.type = show ? 'text' : 'password';
+      eye.className = show?'bi bi-eye':'bi bi-eye-slash';
+  };
+  /* add shake if there are server‑side errors */
+  {% if form.non_field_errors or form.username.errors or form.password.errors %}
+    document.getElementById('card').classList.add('shake');
+  {% endif %}
+  </script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+{% extends "school/base.html" %}
+{% load humanize %}
+
+{% block title %}SMS History{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{
+  --slate:#334155;--tile-bg:linear-gradient(135deg,#fff,#f9fafb);
+  --blur:14px;--shadow:0 6px 18px rgba(0,0,0,.1);
+}
+body{background:linear-gradient(135deg,var(--light),#e0e7ff)}
+
+/* hero ------------------------------------------------------------------*/
+.hero{background:linear-gradient(135deg,var(--slate),var(--pri));
+  color:#fff;padding:1.8rem 1.5rem;border-radius:0 0 22px 22px;box-shadow:var(--shadow)}
+.hero h2{margin:0;font-size:clamp(1.8rem,5vw,2.3rem);font-weight:800;display:flex;gap:.55rem}
+
+/* KPI tiles -------------------------------------------------------------*/
+.kpi-wrap{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin:1.8rem 0}
+.kpi{flex:1 1 150px;min-width:140px;position:relative;text-align:center;padding:1rem;
+     border-radius:16px;background:var(--tile-bg);box-shadow:var(--shadow)}
+.kpi h4{font-size:.9rem;margin:0 0 .35rem;color:var(--slate)}
+.kpi span{font-size:1.4rem;font-weight:800}
+
+/* controls --------------------------------------------------------------*/
+.controls{display:flex;flex-wrap:wrap;gap:.8rem;justify-content:center;margin-bottom:1.6rem}
+.controls input,.controls select{background:#fff;border:none;border-radius:9999px;
+  padding:.55rem 1.1rem;font-weight:600;min-width:160px}
+.controls input:focus,.controls select:focus{outline:3px solid var(--pri)}
+
+.btn-main,.btn-danger{border:none;border-radius:9999px;padding:.55rem 1.4rem;font-weight:700;color:#fff;cursor:pointer;box-shadow:var(--shadow)}
+.btn-main{background:linear-gradient(45deg,var(--pri),var(--sec))} .btn-main:hover{filter:brightness(1.07)}
+.btn-danger{background:#ef4444} .btn-danger:hover{filter:brightness(1.05)}
+
+/* table -----------------------------------------------------------------*/
+.table-wrap{background:var(--tile-bg);border-radius:16px;box-shadow:var(--shadow);overflow-x:auto}
+table{width:100%;min-width:760px;border-collapse:collapse;font-size:.9rem}
+thead{background:linear-gradient(135deg,#22c55e,#3b82f6);color:#fff}
+th,td{padding:.75rem 1rem;white-space:nowrap}
+tbody tr:nth-child(even){background:#0001} tbody tr:hover{background:#0ea5e91a}
+.message-cell{max-width:320px;white-space:normal}
+.no-data{text-align:center;padding:1.8rem;color:#475569}
+
+/* responsive tweaks -----------------------------------------------------*/
+@media(max-width:600px){
+  .controls input,.controls select{min-width:130px;font-size:.82rem}
+  th,td{font-size:.82rem}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- hero -->
+<div class="hero"><h2>📜 SMS History</h2></div>
+
+<!-- KPI tiles -->
+<div class="kpi-wrap">
+  <div class="kpi"><h4>🟢 Sent</h4>      <span>{{ total_sent|intcomma }}</span></div>
+  <div class="kpi"><h4>👥 Recipients</h4><span>{{ unique_recipients|intcomma }}</span></div>
+  <div class="kpi"><h4>🔴 Failed</h4>    <span>{{ total_failed|intcomma }}</span></div>
+</div>
+
+<!-- controls -->
+<div class="controls">
+  <input id="searchBox"  placeholder="Search name / number…">
+  <input id="dateFilter" type="date">
+  <select id="statusFilter">
+    <option value="">All Status</option><option>Sent</option><option>Failed</option>
+  </select>
+
+  <a href="{% url 'sms_send' %}"      class="btn-main">✉️ Send SMS</a>
+  <a href="{% url 'sms_balance' %}"   class="btn-main">💳 Balance</a>
+  <button id="btnFilter"  class="btn-main">🔍 Apply</button>
+  <button id="bulkDelete" class="btn-danger">🗑️ Delete Selected</button>
+</div>
+
+<!-- table -->
+<div class="table-wrap">
+<table id="smsTable">
+  <thead><tr>
+    <th><input type="checkbox" id="selAll"></th>
+    <th>Status</th><th>📅 Date</th><th>First</th><th>Last</th>
+    <th>📞 Number</th><th>Message</th>
+  </tr></thead>
+  <tbody>
+  {% for m in messages %}
+    <tr data-status="{{ m.status }}" data-date="{{ m.sent_date|date:'Y-m-d' }}"
+        data-search="{{ m.first_name }} {{ m.last_name }} {{ m.dest_addr }} {{ m.message }}">
+      <td><input type="checkbox" class="rowCB" value="{{ m.id }}"></td>
+      <td>{% if m.status|lower == 'sent' %}🟢 Sent{% else %}🔴 {{ m.status }}{% endif %}</td>
+      <td>{{ m.sent_date|date:"Y-m-d H:i" }}</td>
+      <td>{{ m.first_name }}</td>
+      <td>{{ m.last_name }}</td>
+      <td>{{ m.dest_addr }}</td>
+      <td class="message-cell">{{ m.message }}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="7" class="no-data">No messages found.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* select‑all checkbox */
+document.getElementById('selAll').onchange=e=>{
+  document.querySelectorAll('.rowCB').forEach(cb=>cb.checked=e.target.checked);
+};
+
+/* client‑side filter */
+function applyFilter(){
+  const term=document.getElementById('searchBox').value.toLowerCase();
+  const date=document.getElementById('dateFilter').value;
+  const stat=document.getElementById('statusFilter').value;
+  document.querySelectorAll('#smsTable tbody tr').forEach(r=>{
+    const okTerm=r.dataset.search.toLowerCase().includes(term);
+    const okDate=!date||r.dataset.date===date;
+    const okStat=!stat||r.dataset.status===stat;
+    r.style.display=okTerm&&okDate&&okStat?'':'none';
+  });
+}
+document.getElementById('btnFilter').onclick=applyFilter;
+document.getElementById('searchBox').oninput=applyFilter;
+
+/* bulk delete -----------------------------------------------------*/
+function csrftoken(){const m=document.cookie.match('(^|;)\\s*csrftoken=([^;]+)');return m?decodeURIComponent(m[2]):'';}
+document.getElementById('bulkDelete').onclick=()=>{
+  const ids=[...document.querySelectorAll('.rowCB:checked')].map(cb=>cb.value);
+  if(!ids.length||!confirm(`Delete ${ids.length} message(s)?`))return;
+  const body=new URLSearchParams();ids.forEach(id=>body.append('sms_ids',id));
+  fetch("{% url 'delete_sms' %}",{method:'POST',headers:{'X-CSRFToken':csrftoken()},body})
+    .then(r=>r.ok?location.reload():alert('Delete failed')).catch(()=>alert('Request error'));
+};
+</script>
+{% endblock %}

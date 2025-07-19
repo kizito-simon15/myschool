@@ -1,0 +1,48 @@
+{% extends "school/base.html" %}
+{% block title %}Staff Details – St. Theresia‑Avila{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{--pri:#0d9488;--sec:#f97316;--bg:#f9fafc;--txt:#1e293b;--shadow:0 3px 12px rgba(0,0,0,.08)}
+body.dark{--bg:#0f172a;--txt:#e2e8f0}
+
+main{margin:0;padding:0;background:var(--bg);color:var(--txt)}
+.head-strip{background:linear-gradient(135deg,var(--pri),var(--sec));color:#fff;text-align:center;padding:1rem;box-shadow:var(--shadow)}
+.head-strip h2{margin:0;font-size:1.35rem;font-weight:700;display:flex;gap:.5rem;justify-content:center}
+
+.card{width:96%;max-width:720px;margin:1.4rem auto;padding:1.6rem;border-radius:14px;background:#fff;box-shadow:var(--shadow)}
+body.dark .card{background:#1e293b}
+.card p{margin:.35rem 0;font-size:.93rem;font-weight:600}
+.status-active{color:#16a34a;font-weight:700}
+.status-inactive{color:#dc2626;font-weight:700}
+
+.btn-main,.btn-sec{border:none;border-radius:9999px;padding:.55rem 1.4rem;font-weight:700;color:#fff;cursor:pointer;transition:.25s;display:inline-flex;align-items:center;gap:.45rem}
+.btn-main{background:linear-gradient(135deg,var(--pri),var(--sec))}
+.btn-main:hover{filter:brightness(1.06)}
+.btn-sec{background:#64748b}
+.btn-sec:hover{filter:brightness(1.1)}
+@media(max-width:520px){.btn-main,.btn-sec{flex:1 1 100%;margin-top:.4rem}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="head-strip"><h2>👤 Staff Details</h2></div>
+
+<div class="card">
+  <h3 class="mb-3 text-xl font-bold">{{ staff.first_name }} {{ staff.last_name }}</h3>
+
+  <p>📞 <strong>Phone:</strong> {{ staff.phone|default:"N/A" }}</p>
+  <p>✉️ <strong>Email:</strong> {{ staff.email|default:"N/A" }}</p>
+  <p>📅 <strong>Hire date:</strong> {{ staff.hire_date|date:"Y-m-d" }}</p>
+  <p><strong>Status:</strong>
+     <span class="status-{% if staff.is_active %}active{% else %}inactive{% endif %}">
+       {{ staff.is_active|yesno:"Active,Inactive" }}
+     </span>
+  </p>
+
+  <div class="d-flex gap-3 flex-wrap mt-4">
+    <a href="{% url 'staff_update' staff.pk %}" class="btn-main"><i class="bi bi-pencil"></i> Edit</a>
+    <a href="{% url 'staff_list' %}"  class="btn-sec"><i class="bi bi-arrow-left"></i> Back</a>
+  </div>
+</div>
+{% endblock %}

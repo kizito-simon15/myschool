@@ -1,0 +1,192 @@
+{% extends "school/base.html" %}
+{% load humanize %}
+{% block title %}Staff – St. Theresia‑Avila{% endblock %}
+
+{% block content %}
+<style>
+/* ── palette tokens ─────────────────────────────────────────*/
+:root{ --pri:#0d9488; --sec:#f97316; --bg:#f9fafb; --txt:#1e293b;
+       --success:#16a34a; --danger:#dc2626; --info:#0ea5e9; }
+body.dark{--bg:#0f172a;--txt:#e2e8f0}
+
+/* keep base‑margin on desktop, remove only on phones */
+main{padding:0;background:var(--bg);color:var(--txt);}
+@media(max-width:767px){main{margin-left:0;}}
+
+/* ── header strip ───────────────────────────────────────────*/
+.top-strip{background:linear-gradient(135deg,var(--pri),var(--sec));
+           color:#fff;padding:1rem;text-align:center}
+.top-strip h2{margin:0;font-size:1.32rem;font-weight:700;display:flex;
+              gap:.4rem;justify-content:center}
+
+/* ── KPI badges ─────────────────────────────────────────────*/
+.kpis{display:flex;gap:.5rem;overflow-x:auto;padding:.6rem 1rem .4rem}
+.kpi{flex:0 0 120px;background:rgba(255,255,255,.75);backdrop-filter:blur(10px);
+     border-radius:14px;padding:.55rem;text-align:center}
+.kpi h4{margin:0;font-size:.75rem;font-weight:600;color:var(--pri)}
+.kpi span{font-size:1.28rem;font-weight:800}
+body.dark .kpi{background:rgba(17,24,39,.8)}
+
+/* ── controls row ───────────────────────────────────────────*/
+.ctrl{display:flex;flex-wrap:wrap;gap:.55rem;padding:.6rem 1rem}
+.search{flex:1 1 230px;border:none;background:#e2e8f0;border-radius:9999px;
+        padding:.55rem 1rem .55rem 2.25rem;position:relative;font-size:.9rem}
+.search::before{content:"\\F52A";font-family:bootstrap-icons;position:absolute;
+                left:.85rem;top:50%;transform:translateY(-50%);opacity:.6}
+.segment{display:inline-flex;background:#e2e8f0;border-radius:9999px;overflow:hidden}
+.segment button{border:none;background:transparent;padding:.45rem 1rem;font-size:.78rem;
+               font-weight:600;cursor:pointer;color:#475569}
+.segment button.active{background:#fff;color:#000}
+.add{border:none;background:var(--pri);color:#fff;border-radius:9999px;
+     padding:.55rem 1.1rem;font-size:.83rem}
+body.dark .search,body.dark .segment{background:#1e293b}
+
+/* ── table view ─────────────────────────────────────────────*/
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.88rem;min-width:800px}
+thead{background:var(--pri);color:#fff}
+th,td{padding:.6rem}  td{border-bottom:1px solid #e2e8f0}
+tbody tr:hover{background:#ecfeff}
+.status-active{color:var(--success);font-weight:700}
+.status-inactive{color:var(--danger);font-weight:700}
+
+/* horizontal actions */
+td.actions{display:flex;gap:.35rem;align-items:center}
+.ic{border:none;border-radius:50%;width:30px;height:30px;display:grid;
+    place-items:center;font-size:.8rem;color:#fff}
+.v{background:var(--info)} .e{background:var(--success)} .d{background:var(--danger)}
+body.dark tbody tr:hover{background:#073437} body.dark td{border-color:#1e293b}
+
+/* ── card grid (hidden by default) ──────────────────────────*/
+.grid{display:none;grid-gap:1rem;padding:1rem}
+.card{background:#fff;border-radius:12px;padding:1rem;
+      box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.card h3{margin:0 0 .45rem;font-size:1.05rem;color:var(--pri)}
+.card p{margin:.25rem 0;font-size:.85rem}
+.cacts{display:flex;gap:.35rem;margin-top:.5rem}
+body.dark .card{background:#1e293b}
+@media(max-width:500px){.grid{grid-template-columns:1fr}}
+</style>
+
+<!-- header -->
+<div class="top-strip"><h2>👥 Staff</h2></div>
+
+<!-- kpis -->
+<div class="kpis">
+  <div class="kpi"><h4>Total</h4><span id="kTotal">{{ total_staff }}</span></div>
+  <div class="kpi"><h4>Active</h4><span id="kActive">{{ active_staff }}</span></div>
+</div>
+
+<!-- controls -->
+<div class="ctrl">
+  <input id="search" class="search" placeholder="Search name…">
+  <div class="segment">
+    <button id="bName" class="active">Name</button>
+    <button id="bDate">Hire Date</button>
+    <button id="bStat">Status</button>
+  </div>
+  <button id="toggle" class="segment"><span>🔳 Card View</span></button>
+  <a href="{% url 'staff_create' %}" class="add">➕ Add</a>
+</div>
+
+<!-- table view -->
+<div class="wrap" id="tableBox">
+<table id="tbl">
+  <thead><tr>
+    <th>Name</th><th>Phone</th><th>Email</th><th>Hire Date</th><th>Status</th><th></th>
+  </tr></thead>
+  <tbody>
+  {% for s in staff %}
+    <tr data-name="{{ s.first_name }} {{ s.last_name }}"
+        data-date="{{ s.hire_date|date:'Y-m-d' }}"
+        data-active="{{ s.is_active|yesno:'1,0' }}">
+      <td>{{ s.first_name }} {{ s.last_name }}</td>
+      <td>{{ s.phone|default:'N/A' }}</td>
+      <td>{{ s.email|default:'N/A' }}</td>
+      <td>{{ s.hire_date|date:'Y-m-d' }}</td>
+      <td><span class="status-{% if s.is_active %}active{% else %}inactive{% endif %}">
+          {{ s.is_active|yesno:'Active,Inactive' }}</span></td>
+      <td class="actions">
+        <a class="ic v" href="{% url 'staff_detail' s.pk %}" title="View">👁</a>
+        <a class="ic e" href="{% url 'staff_update' s.pk %}" title="Edit">✎</a>
+        <a class="ic d" href="{% url 'staff_delete' s.pk %}" title="Delete">🗑</a>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<!-- card view -->
+<div class="grid" id="cardBox">
+{% for s in staff %}
+  <div class="card" data-name="{{ s.first_name }} {{ s.last_name }}"
+       data-date="{{ s.hire_date|date:'Y-m-d' }}"
+       data-active="{{ s.is_active|yesno:'1,0' }}">
+    <h3>{{ s.first_name }} {{ s.last_name }}</h3>
+    <p><b>Phone:</b> {{ s.phone|default:'N/A' }}</p>
+    <p><b>Email:</b> {{ s.email|default:'N/A' }}</p>
+    <p><b>Date:</b> {{ s.hire_date|date:'Y-m-d' }}</p>
+    <p><b>Status:</b> <span class="status-{% if s.is_active %}active{% else %}inactive{% endif %}">
+      {{ s.is_active|yesno:'Active,Inactive' }}</span></p>
+    <div class="cacts">
+      <a class="ic v" href="{% url 'staff_detail' s.pk %}">👁</a>
+      <a class="ic e" href="{% url 'staff_update' s.pk %}">✎</a>
+      <a class="ic d" href="{% url 'staff_delete' s.pk %}">🗑</a>
+    </div>
+  </div>
+{% endfor %}
+</div>
+
+<script>
+/* helpers */
+const $=q=>document.querySelector(q), $$=q=>[...document.querySelectorAll(q)];
+const rows=$$('#tbl tbody tr'), cards=$$('#cardBox .card');
+let asc=true,sortKey='name',card=false;
+
+/* live search */
+$('#search').oninput=({target:{value:v}})=>{
+  const t=v.toLowerCase();
+  rows.forEach(r=>r.style.display=r.dataset.name.toLowerCase().includes(t)?'':'none');
+  cards.forEach(c=>c.style.display=c.dataset.name.toLowerCase().includes(t)?'':'none');
+  refreshKpi();
+};
+
+/* sorting */
+function makeSorter(btn,key){
+  btn.onclick=()=>{
+    sortKey=key;asc=!asc;
+    $$('.segment button').forEach(b=>b.classList.toggle('active',b===btn));
+    applySort();
+  };
+}
+makeSorter($('#bName'),'name');
+makeSorter($('#bDate'),'date');
+makeSorter($('#bStat'),'active');
+function applySort(){
+  const vis=rows.filter(r=>r.style.display!=='none').sort((a,b)=>
+        asc?(a.dataset[sortKey]>b.dataset[sortKey]?1:-1)
+           :(a.dataset[sortKey]<b.dataset[sortKey]?1:-1));
+  vis.forEach(r=>r.parentNode.appendChild(r));
+  /* mirror order in cards */
+  const order=vis.map(r=>r.dataset.name);
+  $('#cardBox').append(...order.map(n=>cards.find(c=>c.dataset.name===n)));
+}
+
+/* view toggle */
+$('#toggle').onclick=()=>{
+  card=!card;
+  $('#tableBox').style.display=card?'none':'block';
+  $('#cardBox').style.display=card?'grid':'none';
+  $('#toggle').textContent=card?'📋 Table View':'🔳 Card View';
+};
+
+/* KPI */
+function refreshKpi(){
+  const vis=rows.filter(r=>r.style.display!=='none');
+  $('#kTotal').textContent=vis.length;
+  $('#kActive').textContent=vis.filter(r=>r.dataset.active==='1').length;
+}
+refreshKpi();
+</script>
+{% endblock %}

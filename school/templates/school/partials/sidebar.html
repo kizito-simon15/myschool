@@ -1,0 +1,48 @@
+{# school/partials/sidebar.html #}
+
+<!-- DASHBOARD -->
+<p class="menu-label">OVERVIEW</p>
+<a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+  <i class="bi bi-house-door"></i><span>Dashboard</span>
+</a>
+
+<!-- STUDENTS -->
+<p class="menu-label">STUDENTS</p>
+<a href="{% url 'student_list' %}" class="nav-link {% if request.resolver_match.url_name|slice:'0:7' == 'student' and request.resolver_match.url_name != 'student_promotion' %}active{% endif %}">
+  <i class="bi bi-people-fill"></i><span>All Students</span>
+  {% if total_students %}<span class="badge">{{ total_students }}</span>{% endif %}
+</a>
+<a href="{% url 'student_promotion' %}" class="nav-link {% if request.resolver_match.url_name == 'student_promotion' %}active{% endif %}">
+  <i class="bi bi-arrow-up-circle"></i><span>Promote</span>
+</a>
+
+<!-- STAFF -->
+<p class="menu-label">STAFF</p>
+<a href="{% url 'staff_list' %}" class="nav-link {% if request.resolver_match.url_name|slice:'0:5' == 'staff' %}active{% endif %}">
+  <i class="bi bi-person-workspace"></i><span>Staff</span>
+  {% if total_staff %}<span class="badge">{{ total_staff }}</span>{% endif %}
+</a>
+
+<!-- ACADEMIC -->
+<p class="menu-label">ACADEMIC</p>
+<a href="{% url 'academicyear_list' %}" class="nav-link {% if request.resolver_match.url_name|slice:'0:11' == 'academicyear' %}active{% endif %}">
+  <i class="bi bi-calendar"></i><span>Years</span>
+</a>
+<a href="{% url 'schoolclass_list' %}" class="nav-link {% if request.resolver_match.url_name|slice:'0:10' == 'schoolclass' %}active{% endif %}">
+  <i class="bi bi-book"></i><span>Classes</span>
+</a>
+
+<!-- COMMUNICATION -->
+<p class="menu-label">COMMUNICATION</p>
+<a href="{% url 'sms_send' %}" class="nav-link {% if request.resolver_match.url_name == 'sms_send' %}active{% endif %}">
+  <i class="bi bi-envelope"></i><span>Send SMS</span>
+</a>
+<a href="{% url 'sms_history' %}" class="nav-link {% if request.resolver_match.url_name == 'sms_history' %}active{% endif %}">
+  <i class="bi bi-clock-history"></i><span>SMS History</span>
+</a>
+
+<!-- ADMIN -->
+<p class="menu-label">ADMIN</p>
+<a href="{% url 'user_list' %}" class="nav-link {% if request.resolver_match.url_name|slice:'0:4' == 'user' %}active{% endif %}">
+  <i class="bi bi-person-lines-fill"></i><span>Users</span>
+</a>

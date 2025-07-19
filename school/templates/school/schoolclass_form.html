@@ -1,0 +1,219 @@
+{% extends "school/base.html" %}
+{% block title %}{% if form.instance.pk %}Edit Class{% else %}Add Class{% endif %} - St. Theresia-Avila{% endblock %}
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="bg-white dark:bg-gray-800 shadow-lg rounded-3 p-4 neumorphic">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">📚 {% if form.instance.pk %}Edit{% else %}Add{% endif %} Class</h1>
+        <form method="post" id="schoolClassForm" class="space-y-4">
+            {% csrf_token %}
+            {% if form.errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>Error:</strong> Please correct the errors below.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ form.non_field_errors|join:", " }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+            <div class="row g-3">
+                {% for field in form %}
+                    <div class="col-12 {% if field.name == 'academic_year' %}col-md-6{% endif %}">
+                        <label for="{{ field.id_for_label }}" class="form-label fw-bold text-gray-700 dark:text-gray-300">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="invalid-feedback">
+                                {{ field.errors|join:", " }}
+                            </div>
+                        {% endif %}
+                        {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="mt-4 d-flex gap-3">
+                <button type="submit" class="btn btn-primary rounded-pill px-4 py-2">💾 Save</button>
+                <a href="{% url 'schoolclass_list' %}" class="btn btn-secondary rounded-pill px-4 py-2">⬅️ Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+:root {
+    --primary: #0d9488; /* Teal */
+    --secondary: #f97316; /* Orange */
+    --neu-bg: #e0e7ff;
+    --neu-shadow: 6px 6px 12px rgba(0, 0, 0, 0.1), -6px -6px 12px rgba(255, 255, 255, 0.7);
+}
+
+.neumorphic {
+    background: var(--neu-bg);
+    box-shadow: var(--neu-shadow);
+    border: none;
+}
+
+.form-control, .form-select {
+    border-radius: 0.75rem;
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.7);
+    transition: box-shadow 0.2s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.15), inset -1px -1px 2px rgba(255, 255, 255, 0.9);
+    border-color: var(--primary);
+}
+
+.btn-primary {
+    background: linear-gradient(145deg, var(--primary), var(--secondary));
+    border: none;
+    box-shadow: var(--neu-shadow);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(145deg, var(--secondary), var(--primary));
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    box-shadow: var(--neu-shadow);
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+}
+
+.alert {
+    border-radius: 0.75rem;
+    box-shadow: var(--neu-shadow);
+}
+
+@media (max-width: 576px) {
+    .container-fluid {
+        padding: 0 0.5rem;
+    }
+    .form-control, .form-select {
+        font-size: 0.9rem;
+    }
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    .d-flex {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.getElementById('id_name');
+    const academicYearSelect = document.getElementById('id_academic_year');
+    const form = document.getElementById('schoolClassForm');
+
+    // Client-side validation for name
+    nameInput.addEventListener('blur', function() {
+        const value = this.value.trim();
+        const feedback = document.createElement('div');
+        feedback.className = 'invalid-feedback';
+        feedback.style.display = 'none';
+
+        if (!value) {
+            this.classList.add('is-invalid');
+            feedback.textContent = 'Class name is required.';
+            if (!this.nextElementSibling?.classList.contains('invalid-feedback')) {
+                this.parentElement.appendChild(feedback);
+            }
+            feedback.style.display = 'block';
+        } else if (value.length > 40) {
+            this.classList.add('is-invalid');
+            feedback.textContent = 'Class name must be 40 characters or less.';
+            if (!this.nextElementSibling?.classList.contains('invalid-feedback')) {
+                this.parentElement.appendChild(feedback);
+            }
+            feedback.style.display = 'block';
+        } else {
+            this.classList.remove('is-invalid');
+            if (this.nextElementSibling?.classList.contains('invalid-feedback')) {
+                this.nextElementSibling.remove();
+            }
+        }
+    });
+
+    // Client-side validation for academic year
+    academicYearSelect.addEventListener('blur', function() {
+        const value = this.value;
+        const feedback = document.createElement('div');
+        feedback.className = 'invalid-feedback';
+        feedback.style.display = 'none';
+
+        if (!value) {
+            this.classList.add('is-invalid');
+            feedback.textContent = 'Please select an academic year.';
+            if (!this.nextElementSibling?.classList.contains('invalid-feedback')) {
+                this.parentElement.appendChild(feedback);
+            }
+            feedback.style.display = 'block';
+        } else {
+            this.classList.remove('is-invalid');
+            if (this.nextElementSibling?.classList.contains('invalid-feedback')) {
+                this.nextElementSibling.remove();
+            }
+        }
+    });
+
+    // Real-time validation feedback
+    nameInput.addEventListener('input', function() {
+        if (this.nextElementSibling?.classList.contains('invalid-feedback')) {
+            this.nextElementSibling.style.display = 'none';
+            this.classList.remove('is-invalid');
+        }
+    });
+
+    academicYearSelect.addEventListener('change', function() {
+        if (this.nextElementSibling?.classList.contains('invalid-feedback')) {
+            this.nextElementSibling.style.display = 'none';
+            this.classList.remove('is-invalid');
+        }
+    });
+
+    // Prevent form submission if validation fails
+    form.addEventListener('submit', function(e) {
+        let hasErrors = false;
+        const nameValue = nameInput.value.trim();
+        const yearValue = academicYearSelect.value;
+
+        if (!nameValue) {
+            nameInput.classList.add('is-invalid');
+            const feedback = document.createElement('div');
+            feedback.className = 'invalid-feedback';
+            feedback.textContent = 'Class name is required.';
+            if (!nameInput.nextElementSibling?.classList.contains('invalid-feedback')) {
+                nameInput.parentElement.appendChild(feedback);
+            }
+            feedback.style.display = 'block';
+            hasErrors = true;
+        }
+
+        if (!yearValue) {
+            academicYearSelect.classList.add('is-invalid');
+            const feedback = document.createElement('div');
+            feedback.className = 'invalid-feedback';
+            feedback.textContent = 'Please select an academic year.';
+            if (!academicYearSelect.nextElementSibling?.classList.contains('invalid-feedback')) {
+                academicYearSelect.parentElement.appendChild(feedback);
+            }
+            feedback.style.display = 'block';
+            hasErrors = true;
+        }
+
+        if (hasErrors) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}
